@@ -1,4 +1,10 @@
 #include "systemclass.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 SystemClass::SystemClass()
 {
@@ -88,6 +94,7 @@ void SystemClass::Run()
 		}
 
 		// If windows signals to end the application then exit out.
+		// maybe some system messages, like kill process, etc.
 		if (msg.message == WM_QUIT)
 		{
 			done = true;
@@ -107,6 +114,7 @@ void SystemClass::Run()
 	return;
 }
 
+// deal with input first, and then do the frame processing.
 bool SystemClass::Frame()
 {
 	bool result;
@@ -115,8 +123,19 @@ bool SystemClass::Frame()
 	// Check if the user pressed escape and wants to exit the application.
 	if (m_Input->IsKeyDown(VK_ESCAPE))
 	{
+		// what different between here and WM_QUIT is that here is
+		// a user input, and WM_QUIT is a system message.
 		return false;
 	}
+
+#ifdef _DEBUG 
+	if (m_Input->IsKeyDown('1'))
+	{
+		return false;
+	}
+
+#endif // DEBUG
+
 
 	// Do the frame processing for the application class object.
 	result = m_Application->Frame();
@@ -193,6 +212,19 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
+
+	// Back up for multiple monitor support.
+	DEVMODE devMode;
+	ZeroMemory(&devMode, sizeof(DEVMODE));
+	devMode.dmSize = sizeof(DEVMODE);
+
+	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devMode)) {
+	
+		screenWidth = devMode.dmPelsWidth;
+		screenHeight = devMode.dmPelsHeight;
+	}
+
+
 	// Setup the screen settings depending on whether it is running in full screen or in windowed mode.
 	if (FULL_SCREEN)
 	{
@@ -213,8 +245,8 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	else
 	{
 		// If windowed then set it to 800x600 resolution.
-		screenWidth = 800;
-		screenHeight = 600;
+		screenWidth = 1920;
+		screenHeight = 1080;
 
 		// Place the window in the middle of the screen.
 		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
@@ -232,13 +264,18 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	SetFocus(m_hwnd);
 
 	// Hide the mouse cursor.
-	ShowCursor(false);
+	ShowCursor(true);
 
 	return;
 }
 
 void SystemClass::ShutdownWindows()
 {
+	//shut down imgui
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	// Show the mouse cursor.
 	ShowCursor(true);
 
@@ -262,8 +299,13 @@ void SystemClass::ShutdownWindows()
 	return;
 }
 
+
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, umessage, wparam, lparam))
+		return true;
+
 	switch (umessage)
 	{
 		// Check if the window is being destroyed.

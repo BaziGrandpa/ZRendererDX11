@@ -11,6 +11,9 @@
 ApplicationClass::ApplicationClass()
 {
 	m_Direct3D = 0;
+	m_Camera = 0;
+	m_Model = 0;
+	m_ColorShader = 0;
 }
 
 
@@ -51,6 +54,32 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX11_Init(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
 
+	// Create the camera object.
+	m_Camera = new CameraClass;
+
+	// Set the initial position of the camera.
+	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+
+	// Create and initialize the model object.
+	m_Model = new ModelClass;
+
+	result = m_Model->Initialize(m_Direct3D->GetDevice());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create and initialize the color shader object.
+	m_ColorShader = new ColorShaderClass;
+
+	result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -61,6 +90,29 @@ void ApplicationClass::Shutdown()
 	// That is why it is important to set all the pointers to null in the class constructor. 
 	// If it does find the pointer has been initialized then it will attempt to shut down the D3DClass 
 	// and then clean up the pointer afterwards.
+
+	// Release the color shader object.
+	if (m_ColorShader)
+	{
+		m_ColorShader->Shutdown();
+		delete m_ColorShader;
+		m_ColorShader = 0;
+	}
+
+	// Release the model object.
+	if (m_Model)
+	{
+		m_Model->Shutdown();
+		delete m_Model;
+		m_Model = 0;
+	}
+
+	// Release the camera object.
+	if (m_Camera)
+	{
+		delete m_Camera;
+		m_Camera = 0;
+	}
 	if (m_Direct3D)
 	{
 		m_Direct3D->Shutdown();
@@ -96,16 +148,43 @@ bool ApplicationClass::Render()
 	ImGui::ShowDemoWindow(); // Show demo window! :)
 
 
-	// Clear the buffers to begin the scene.
-	m_Direct3D->BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
 
 
-	// Rendering
-	// (Your code clears your framebuffer, renders your other stuff etc.)
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	// (Your code calls swapchain's Present() function)
 	// Present the rendered scene to the screen.
+
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	bool result;
+
+
+	// Clear the buffers to begin the scene.
+	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Get the world, view, and projection matrices from the camera and d3d objects.
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_Model->Render(m_Direct3D->GetDeviceContext());
+
+	// Render the model using the color shader.
+	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Rendering imgui at the end,so it would be on top of everything
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 	m_Direct3D->EndScene();
 
 	return true;

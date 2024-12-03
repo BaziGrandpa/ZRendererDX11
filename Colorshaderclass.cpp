@@ -239,6 +239,7 @@ void ColorShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 	unsigned long long bufferSize, i;
 	ofstream fout;
 
+	//todo maybe change to utf-8
 
 	// Get a pointer to the error message text buffer.
 	compileErrors = (char*)(errorMessage->GetBufferPointer());

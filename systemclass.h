@@ -15,7 +15,7 @@
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
-#include "inputclass.h"
+#include "Inputclass.h"
 #include "applicationclass.h"
 #include "test.h"
 

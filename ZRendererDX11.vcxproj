@@ -42,6 +42,7 @@
     <ClInclude Include="Cameraclass.h" />
     <ClInclude Include="Colorshaderclass.h" />
     <ClInclude Include="D3dclass.h" />
+    <ClInclude Include="globalSettings.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_dx11.h" />

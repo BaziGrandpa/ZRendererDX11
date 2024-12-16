@@ -2,6 +2,7 @@
 // Filename: applicationclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "applicationclass.h"
+#include "globalSettings.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx11.h"
@@ -148,9 +149,12 @@ void ApplicationClass::Shutdown()
 
 bool ApplicationClass::Frame()
 {
+
+	// logic
+	auto& settings = GlobalSettings::GetInstance();
+	m_Camera->SetPosition(0.0f, 0.0f, settings.cameraZPositin);
+
 	bool result;
-
-
 	// Render the graphics scene.
 	result = Render();
 	if (!result)
@@ -168,8 +172,9 @@ bool ApplicationClass::Render()
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	ImGui::ShowDemoWindow(); // Show demo window! :)
-
+	//ImGui::ShowDemoWindow(); // Show demo window! :)
+	// render my UI
+	RenderDebugUI();
 
 
 
@@ -205,7 +210,10 @@ bool ApplicationClass::Render()
 	{
 		return false;
 	}
-	
+
+
+
+
 
 	// Rendering imgui at the end,so it would be on top of everything
 	ImGui::Render();

@@ -31,6 +31,8 @@
     <ClCompile Include="Source\imgui\imgui_tables.cpp" />
     <ClCompile Include="Source\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Inputclass.cpp" />
+    <ClCompile Include="Source\lightclass.cpp" />
+    <ClCompile Include="Source\lightshaderclass.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Modelclass.cpp" />
     <ClCompile Include="Source\systemclass.cpp" />
@@ -52,6 +54,7 @@
     <ClInclude Include="Source\imgui\imstb_textedit.h" />
     <ClInclude Include="Source\imgui\imstb_truetype.h" />
     <ClInclude Include="Source\Inputclass.h" />
+    <ClInclude Include="Source\Lightclass.h" />
     <ClInclude Include="Source\lightshaderclass.h" />
     <ClInclude Include="Source\Modelclass.h" />
     <ClInclude Include="Source\systemclass.h" />

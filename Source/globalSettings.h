@@ -16,7 +16,7 @@ public:
     float sliderValue = 0.0f;
     int toggleFlag = 0;
 	float cameraZPositin = -5.0f;
-	float trianglePosition = 0.0f;
+	float triangleRotation = 0.0f;
 
 private:
     // Prevent direct instantiation or copying
@@ -38,8 +38,8 @@ void RenderDebugUI() {
     ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
 
 	// Triangle Position
-	ImGui::SliderFloat("Triangle Position", &settings.trianglePosition, -1.0f, 1.0f);
-	ImGui::Text("Slider Value: %.3f", settings.trianglePosition);
+	ImGui::SliderFloat("Triangle Position", &settings.triangleRotation, -3.0f, 3.0f);
+	ImGui::Text("Slider Value: %.3f", settings.triangleRotation);
 
     // End the ImGui window
     ImGui::End();

@@ -6,43 +6,52 @@
 
 class GlobalSettings {
 public:
-    // Access the singleton instance
-    static GlobalSettings& GetInstance() {
-        static GlobalSettings instance; // Static instance
-        return instance;
-    }
+	// Access the singleton instance
+	static GlobalSettings& GetInstance() {
+		static GlobalSettings instance; // Static instance
+		return instance;
+	}
 
-    // Variables accessible through the instance
-    float sliderValue = 0.0f;
-    int toggleFlag = 0;
+	// Variables accessible through the instance
+	float sliderValue = 0.0f;
+	int toggleFlag = 0;
 	float cameraZPositin = -5.0f;
 	float triangleRotation = 0.0f;
+	static float s_global_var;
 
 private:
-    // Prevent direct instantiation or copying
-    GlobalSettings() = default;
-    GlobalSettings(const GlobalSettings&) = delete;
-    GlobalSettings& operator=(const GlobalSettings&) = delete;
+	// Prevent direct instantiation or copying
+	GlobalSettings() = default;
+	GlobalSettings(const GlobalSettings&) = delete;
+	GlobalSettings& operator=(const GlobalSettings&) = delete;
 };
 
 
+// static member initialization
+float GlobalSettings::s_global_var = 0.0f;	
+
+
 void RenderDebugUI() {
-    auto& settings = GlobalSettings::GetInstance();
-    // Render my UI
-    // Create a new ImGui window
-    float sliderValue = 0.0f;
-    ImGui::Begin("Debug value");
+	auto& settings = GlobalSettings::GetInstance();
+	// Render my UI
+	// Create a new ImGui window
+	float sliderValue = 0.0f;
+	ImGui::Begin("Debug value");
 
 	// Camera Z Position
-    ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -10.0f, 10.0f);
-    ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
+	ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -10.0f, 10.0f);
+	ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
 
 	// Triangle Position
 	ImGui::SliderFloat("Triangle Position", &settings.triangleRotation, -3.0f, 3.0f);
 	ImGui::Text("Slider Value: %.3f", settings.triangleRotation);
 
-    // End the ImGui window
-    ImGui::End();
+	// Test static
+	ImGui::SliderFloat("Test static", &GlobalSettings::s_global_var, -3.0f, 3.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_global_var);
+
+	// End the ImGui window
+	ImGui::End();
 }
 
 

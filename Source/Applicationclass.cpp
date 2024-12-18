@@ -33,6 +33,7 @@ ApplicationClass::~ApplicationClass()
 
 bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
+	char modelFilename[128];
 	char textureFilename[128];
 	bool result;
 
@@ -65,38 +66,22 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 
+	// Set the file name of the model.
+	strcpy_s(modelFilename, "../ZRendererDX11/Resources/Models/cube.txt");
+
 	// Create and initialize the model object.
 	m_Model = new ModelClass;
 
 	// Set the name of the texture file that we will be loading.
 	strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
 
-	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), textureFilename);
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 		return false;
 	}
 
-	//// Create and initialize the color shader object.
-	//m_ColorShader = new ColorShaderClass;
-
-	//result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-	//if (!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//// Create and initialize the texture shader object.
-	//m_TextureShader = new TextureShaderClass;
-
-	//result = m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-	//if (!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
-	//	return false;
-	//}
 
 	// Create and initialize the light shader object.
 	m_LightShader = new LightShaderClass;
@@ -189,7 +174,7 @@ bool ApplicationClass::Frame()
 
 	bool result;
 	// Render the graphics scene.
-	result = Render(settings.triangleRotation);
+	result = Render();
 	if (!result)
 	{
 		return false;
@@ -199,7 +184,7 @@ bool ApplicationClass::Frame()
 }
 
 
-bool ApplicationClass::Render(float rotation)
+bool ApplicationClass::Render()
 {
 	// Start the Dear ImGui frame
 	ImGui_ImplDX11_NewFrame();
@@ -232,7 +217,9 @@ bool ApplicationClass::Render(float rotation)
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixRotationY(rotation);
+	worldMatrix = XMMatrixRotationY(GlobalSettings::s_objectRotation);
+	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixTranslation(0.0f, GlobalSettings::s_objectPositionY, 0.0f));
+
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_Direct3D->GetDeviceContext());

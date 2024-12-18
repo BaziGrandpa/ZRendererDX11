@@ -46,15 +46,13 @@ public:
 	bool Frame();
 
 private:
-	//bool Render();
-	bool Render(float);
+	bool Render();
+
 
 private:
 	D3DClass* m_Direct3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
-	//ColorShaderClass* m_ColorShader;
-	//TextureShaderClass* m_TextureShader;
 
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;

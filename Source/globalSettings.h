@@ -16,7 +16,8 @@ public:
 	float sliderValue = 0.0f;
 	int toggleFlag = 0;
 	float cameraZPositin = -5.0f;
-	float triangleRotation = 0.0f;
+	static float s_objectRotation;
+	static float s_objectPositionY;
 	static float s_global_var;
 
 private:
@@ -29,6 +30,8 @@ private:
 
 // static member initialization
 float GlobalSettings::s_global_var = 0.0f;	
+float GlobalSettings::s_objectRotation = 0.0f;
+float GlobalSettings::s_objectPositionY = 0.0f;
 
 
 void RenderDebugUI() {
@@ -43,12 +46,12 @@ void RenderDebugUI() {
 	ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
 
 	// Triangle Position
-	ImGui::SliderFloat("Triangle Position", &settings.triangleRotation, -3.0f, 3.0f);
-	ImGui::Text("Slider Value: %.3f", settings.triangleRotation);
+	ImGui::SliderFloat(" Rotation", &GlobalSettings::s_objectRotation, -3.0f, 3.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotation);
 
 	// Test static
-	ImGui::SliderFloat("Test static", &GlobalSettings::s_global_var, -3.0f, 3.0f);
-	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_global_var);
+	ImGui::SliderFloat("object PositionY", &GlobalSettings::s_objectPositionY, -3.0f, 3.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectPositionY);
 
 	// End the ImGui window
 	ImGui::End();

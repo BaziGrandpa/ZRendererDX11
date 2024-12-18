@@ -9,6 +9,8 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include <fstream>
+#include <fbxsdk.h>
+#include <iostream>
 using namespace DirectX;
 using namespace std;
 
@@ -44,6 +46,7 @@ public:
 	~ModelClass();
 
 	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, char*, char*);
+	bool InitializeFBX();
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
@@ -67,6 +70,8 @@ private:
 	TextureClass* m_Texture;
 
 	ModelType* m_model;
+
+	FbxScene* m_scene;
 };
 
 #endif

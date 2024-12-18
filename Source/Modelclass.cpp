@@ -27,6 +27,12 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 {
 	bool result;
 
+	result = InitializeFBX();
+	if (!result)
+	{
+		return false;
+	}
+
 	// Load in the model data.
 	result = LoadModel(modelFilename);
 	if (!result)
@@ -48,6 +54,24 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 		return false;
 	}
 
+	return true;
+}
+
+bool ModelClass::InitializeFBX()
+{
+	FbxManager* sdkManager = FbxManager::Create();
+	FbxIOSettings* ios = FbxIOSettings::Create(sdkManager, IOSROOT);
+	sdkManager->SetIOSettings(ios);
+
+	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
+	if (!importer->Initialize("../ZRendererDX11/Resources/Models/Dragon.fbx", -1, sdkManager->GetIOSettings())) {
+		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
+		return false;
+	}
+
+	m_scene = FbxScene::Create(sdkManager, "Scene");
+	importer->Import(m_scene);
+	importer->Destroy();
 	return true;
 }
 
@@ -237,6 +261,7 @@ void ModelClass::ReleaseTexture()
 
 	return;
 }
+
 
 bool ModelClass::LoadModel(char* filename)
 {

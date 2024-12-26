@@ -9,7 +9,7 @@ A lightweight and customizable 3D rendering engine built with DirectX 11. This p
 - 🌟 **Real-Time Lighting**: Supports basic lighting techniques (e.g., directional, point, and spotlights).
 - 📐 **Model Loading**: Load and render 3D models in common formats.
 - 📊 **ImGui Integration**: Built-in GUI for real-time debugging and parameter tweaking.
-- 🔧 **Animation System**: Easily load HLSL shaders for custom rendering techniques.
+- 🔧 **Animation System**: load animation data from fbx file, and can perform skeleton animation.
 - 📈 **Performance Metrics**: Frame rate counter and basic GPU profiling.
 
 ---

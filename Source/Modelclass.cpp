@@ -347,7 +347,9 @@ bool ModelClass::LoadFBXModel()
 		return false;
 
 	const char* meshName = mesh->GetName();
-	printf("Mesh Name: %s\n", meshName);
+
+	LOG_DEBUG(string("Mesh name: ") + meshName);
+
 	if (mesh) {
 		ProcessMesh(mesh);
 	}

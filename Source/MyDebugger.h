@@ -43,6 +43,14 @@ private:
 };
 
 
+// all macro
+#define DISPLAY_LOG
+
+#ifdef DISPLAY_LOG
+#define LOG_DEBUG(msg) MyDebugger::LogDebug(msg)
+#else
+#define LOG_DEBUG(msg)
+#endif 
 
 
 #endif

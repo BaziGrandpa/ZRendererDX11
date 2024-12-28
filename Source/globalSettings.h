@@ -2,7 +2,7 @@
 #ifndef _GLOBALSETTING_H_
 #define _GLOBALSETTING_H_
 
-#include "imgui/imgui.h"
+
 
 class GlobalSettings {
 public:
@@ -28,34 +28,10 @@ private:
 };
 
 
-// static member initialization
-float GlobalSettings::s_global_var = 0.0f;	
-float GlobalSettings::s_objectRotation = 0.0f;
-float GlobalSettings::s_objectPositionY = 0.0f;
 
 
-void RenderDebugUI() {
-	auto& settings = GlobalSettings::GetInstance();
-	// Render my UI
-	// Create a new ImGui window
-	float sliderValue = 0.0f;
-	ImGui::Begin("Debug value");
 
-	// Camera Z Position
-	ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -10.0f, 10.0f);
-	ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
 
-	// Triangle Position
-	ImGui::SliderFloat(" Rotation", &GlobalSettings::s_objectRotation, -3.0f, 3.0f);
-	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotation);
-
-	// Test static
-	ImGui::SliderFloat("object PositionY", &GlobalSettings::s_objectPositionY, -3.0f, 3.0f);
-	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectPositionY);
-
-	// End the ImGui window
-	ImGui::End();
-}
 
 
 #endif

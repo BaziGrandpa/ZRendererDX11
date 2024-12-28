@@ -11,8 +11,11 @@
 #include <fstream>
 #include <fbxsdk.h>
 #include <iostream>
+#include <vector>
+#include <queue>
 using namespace DirectX;
 using namespace std;
+using namespace fbxsdk;
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -40,6 +43,7 @@ private:
 		float nx, ny, nz;
 	};
 
+
 public:
 	ModelClass();
 	ModelClass(const ModelClass&);
@@ -62,7 +66,11 @@ private:
 	void ReleaseTexture();
 
 	bool LoadModel(char*);
+	
 	void ReleaseModel();
+
+	bool LoadFBXModel();
+	void ProcessMesh(FbxMesh* mesh);
 
 private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
@@ -72,6 +80,9 @@ private:
 	ModelType* m_model;
 
 	FbxScene* m_scene;
+
+	std::vector<VertexType> m_fbxvertices;
+	std::vector<uint32_t> m_fbxindices;
 };
 
 #endif

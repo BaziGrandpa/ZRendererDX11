@@ -8,6 +8,8 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 
+#include "MyDebugger.h"
+
 
 ApplicationClass::ApplicationClass()
 {
@@ -192,8 +194,9 @@ bool ApplicationClass::Render()
 	ImGui::NewFrame();
 	//ImGui::ShowDemoWindow(); // Show demo window! :)
 	// render my UI
-	RenderDebugUI();
-
+	//RenderDebugUI();
+	MyDebugger::ShowDebugUIPanel();
+	MyDebugger::ShowDebugOutputPanel();
 
 
 	// (Your code calls swapchain's Present() function)

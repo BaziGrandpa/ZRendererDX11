@@ -33,6 +33,13 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 		return false;
 	}
 
+	// Load the FBX model.
+	result = LoadFBXModel();
+	if (!result)
+	{
+		return false;
+	}
+
 	// Load in the model data.
 	result = LoadModel(modelFilename);
 	if (!result)
@@ -64,7 +71,7 @@ bool ModelClass::InitializeFBX()
 	sdkManager->SetIOSettings(ios);
 
 	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
-	if (!importer->Initialize("../ZRendererDX11/Resources/Models/Dragon.fbx", -1, sdkManager->GetIOSettings())) {
+	if (!importer->Initialize("../ZRendererDX11/Resources/Models/cottage.fbx", -1, sdkManager->GetIOSettings())) {
 		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
 		return false;
 	}
@@ -151,6 +158,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = vertices;
+	//vertexData.pSysMem = m_fbxvertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -171,6 +179,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// Give the subresource structure a pointer to the index data.
 	indexData.pSysMem = indices;
+	//indexData.pSysMem = m_fbxindices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -260,6 +269,96 @@ void ModelClass::ReleaseTexture()
 	}
 
 	return;
+}
+
+// Extract mesh data
+void ModelClass::ProcessMesh(FbxMesh* mesh) {
+	int controlPointCount = mesh->GetControlPointsCount();
+	FbxVector4* controlPoints = mesh->GetControlPoints();
+	FbxGeometryElementNormal* normalElement = mesh->GetElementNormal();
+	FbxGeometryElementUV* uvElement = mesh->GetElementUV();
+
+	int polygonCount = mesh->GetPolygonCount();
+
+
+	for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++) {
+		for (int vertexIndex = 0; vertexIndex < mesh->GetPolygonSize(polygonIndex); vertexIndex++) {
+			int controlPointIndex = mesh->GetPolygonVertex(polygonIndex, vertexIndex);
+			FbxVector4 position = controlPoints[controlPointIndex];
+
+			VertexType vertex;
+			vertex.position = XMFLOAT3(static_cast<float>(position[0]), static_cast<float>(position[1]), static_cast<float>(position[2]));
+
+			if (normalElement) {
+				FbxVector4 normal;
+				mesh->GetPolygonVertexNormal(polygonIndex, vertexIndex, normal);
+				vertex.normal = XMFLOAT3(static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]));
+			}
+
+			if (uvElement) {
+				FbxVector2 uv;
+				bool unmapped;
+				mesh->GetPolygonVertexUV(polygonIndex, vertexIndex, uvElement->GetName(), uv, unmapped);
+				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(uv[1]));
+			}
+
+			m_fbxvertices.push_back(vertex);
+			m_fbxindices.push_back(static_cast<uint32_t>(m_fbxvertices.size() - 1));
+		}
+	}
+}
+
+bool ModelClass::LoadFBXModel()
+{
+	FbxNode* root = m_scene->GetRootNode();
+	if (!root) {
+		return false;
+	}
+
+
+	// Process mesh
+	FbxMesh* mesh = nullptr;
+
+	std::queue<FbxNode*> nodeQueue;
+	nodeQueue.push(root);
+
+	// try find a mesh 
+	while (!nodeQueue.empty()) {
+		FbxNode* current = nodeQueue.front();
+		nodeQueue.pop();
+
+		// find mesh
+		mesh = current->GetMesh();
+
+		if (mesh) {
+			break;
+		}
+
+		// add all child
+		int childCount = current->GetChildCount();
+		for (int i = 0; i < childCount; i++) {
+			nodeQueue.push(current->GetChild(i));
+		}
+
+	}
+
+	//can't find mesh 
+	if (!mesh)
+		return false;
+
+	const char* meshName = mesh->GetName();
+	printf("Mesh Name: %s\n", meshName);
+	if (mesh) {
+		ProcessMesh(mesh);
+	}
+
+	//for (int i = 0; i < node->GetChildCount(); i++) {
+	//	ProcessNode(node->GetChild(i), vertices, indices);
+	//}
+
+
+
+	return true;
 }
 
 

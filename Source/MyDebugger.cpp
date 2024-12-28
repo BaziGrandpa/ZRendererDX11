@@ -2,11 +2,7 @@
 
 int MyDebugger::MAX_DEBUG_LINES = 50;
 // Define and initialize the static queue
-std::vector<std::string> MyDebugger::m_allOutput =
-{
-	"Initial debug message 1", "Initial debug message 2", "Initial debug message 3"
-}
-;
+std::vector<MyDebugger::DebugOutput> MyDebugger::m_allOutput;
 
 void MyDebugger::ShowDebugUIPanel() {
 	auto& settings = GlobalSettings::GetInstance();
@@ -32,12 +28,57 @@ void MyDebugger::ShowDebugUIPanel() {
 
 void MyDebugger::ShowDebugOutputPanel() {
 
-
+	if (m_allOutput.empty())
+		return;
 	ImGui::Begin("Output");
-	// End the ImGui window
+
 	for (const auto& message : m_allOutput) {
-		ImGui::Text("%s", message.c_str());
+
+		ImVec4 textColor;
+		switch (message.type) {
+		case MyDebugger::DebugType::Log:
+			textColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White
+			break;
+		case MyDebugger::DebugType::Warning:
+			textColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+			break;
+		case MyDebugger::DebugType::Error:
+			textColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
+			break;
+		}
+
+		// Display the message with the specified color
+		ImGui::TextColored(textColor, "%s", message.content.c_str());
 	}
+
 	ImGui::End();
 
+}
+
+void MyDebugger::LogDebug(string content) {
+
+	MyDebugger::DebugOutput output{ MyDebugger::DebugType::Log,content };
+	Output(output);
+}
+
+void MyDebugger::LogWarning(string content) {
+
+	MyDebugger::DebugOutput output{ MyDebugger::DebugType::Warning,content };
+	Output(output);
+}
+
+void MyDebugger::LogError(string content) {
+
+	MyDebugger::DebugOutput output{ MyDebugger::DebugType::Error,content };
+	Output(output);
+}
+
+void MyDebugger::Output(const DebugOutput& output) {
+	auto length = m_allOutput.size();
+
+	if (length > MAX_DEBUG_LINES) {
+		m_allOutput.erase(m_allOutput.begin());
+	}
+
+	m_allOutput.push_back(output);
 }

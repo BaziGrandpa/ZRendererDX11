@@ -16,6 +16,8 @@ public:
 	float sliderValue = 0.0f;
 	int toggleFlag = 0;
 	float cameraZPositin = -5.0f;
+
+	// Can directly use static rather then Singleton.
 	static float s_objectRotation;
 	static float s_objectPositionY;
 	static float s_global_var;
@@ -26,8 +28,6 @@ private:
 	GlobalSettings(const GlobalSettings&) = delete;
 	GlobalSettings& operator=(const GlobalSettings&) = delete;
 };
-
-
 
 
 

@@ -75,7 +75,8 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Model = new ModelClass;
 
 	// Set the name of the texture file that we will be loading.
-	strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
+	//strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
+	strcpy_s(textureFilename, "../ZRendererDX11/Resources/Dragon_color.tga");
 
 	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
 	if (!result)
@@ -220,7 +221,9 @@ bool ApplicationClass::Render()
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixRotationY(GlobalSettings::s_objectRotation);
+	worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
+	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationY(GlobalSettings::s_objectRotationY));
+	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationZ(GlobalSettings::s_objectRotationZ));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixTranslation(0.0f, GlobalSettings::s_objectPositionY, 0.0f));
 
 
@@ -239,10 +242,6 @@ bool ApplicationClass::Render()
 	{
 		return false;
 	}
-
-
-
-
 
 	// Rendering imgui at the end,so it would be on top of everything
 	ImGui::Render();

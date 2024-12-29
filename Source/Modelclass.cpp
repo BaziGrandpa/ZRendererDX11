@@ -34,7 +34,7 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	}
 
 	// Load the FBX model.
-	result = LoadFBXModel();
+	result = ExtractFBXModel();
 	if (!result)
 	{
 		return false;
@@ -71,7 +71,7 @@ bool ModelClass::InitializeFBX()
 	sdkManager->SetIOSettings(ios);
 
 	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
-	if (!importer->Initialize("../ZRendererDX11/Resources/Models/cottage.fbx", -1, sdkManager->GetIOSettings())) {
+	if (!importer->Initialize("../ZRendererDX11/Resources/Models/Dragon.fbx", -1, sdkManager->GetIOSettings())) {
 		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
 		return false;
 	}
@@ -117,36 +117,39 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
+	//VertexType* vertices;
+	//unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 	int i;
 
-	// Create the vertex array.
-	vertices = new VertexType[m_vertexCount];
-	if (!vertices)
-	{
-		return false;
-	}
+	//// Create the vertex array.
+	//vertices = new VertexType[m_vertexCount];
+	//if (!vertices)
+	//{
+	//	return false;
+	//}
 
-	// Create the index array.
-	indices = new unsigned long[m_indexCount];
-	if (!indices)
-	{
-		return false;
-	}
+	//// Create the index array.
+	//indices = new unsigned long[m_indexCount];
+	//if (!indices)
+	//{
+	//	return false;
+	//}
 
-	// Load the vertex array and index array with data.
-	for (i = 0; i < m_vertexCount; i++)
-	{
-		vertices[i].position = XMFLOAT3(m_model[i].x, m_model[i].y, m_model[i].z);
-		vertices[i].texture = XMFLOAT2(m_model[i].tu, m_model[i].tv);
-		vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
+	//// Load the vertex array and index array with data.
+	//for (i = 0; i < m_vertexCount; i++)
+	//{
+	//	vertices[i].position = XMFLOAT3(m_model[i].x, m_model[i].y, m_model[i].z);
+	//	vertices[i].texture = XMFLOAT2(m_model[i].tu, m_model[i].tv);
+	//	vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
 
-		indices[i] = i;
-	}
+	//	indices[i] = i;
+	//}
+
+	m_vertexCount = m_fbxvertices.size();
+	m_indexCount = m_fbxindices.size();
 
 	// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -157,8 +160,8 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
-	//vertexData.pSysMem = m_fbxvertices.data();
+	//vertexData.pSysMem = vertices;
+	vertexData.pSysMem = m_fbxvertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -171,15 +174,15 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// Set up the description of the static index buffer.
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+	indexBufferDesc.ByteWidth = sizeof(ULONG) * m_indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
-	//indexData.pSysMem = m_fbxindices.data();
+	//indexData.pSysMem = indices;
+	indexData.pSysMem = m_fbxindices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -191,11 +194,11 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete[] vertices;
-	vertices = 0;
+	//delete[] vertices;
+	//vertices = 0;
 
-	delete[] indices;
-	indices = 0;
+	//delete[] indices;
+	//indices = 0;
 
 	return true;
 }
@@ -271,29 +274,50 @@ void ModelClass::ReleaseTexture()
 	return;
 }
 
+void ModelClass::TraverseNode(FbxNode* node) {
+	if (FbxMesh* mesh = node->GetMesh()) {
+		ProcessMesh(mesh);
+		LOG_DEBUG(mesh->GetName());
+	}
+
+	for (int i = 0; i < node->GetChildCount(); i++) {
+		TraverseNode(node->GetChild(i));
+	}
+}
+
 // Extract mesh data
 void ModelClass::ProcessMesh(FbxMesh* mesh) {
-	int controlPointCount = mesh->GetControlPointsCount();
+	int vertexCount = mesh->GetControlPointsCount();
+
+	//actual vertexes position,osnormal,uv data
 	FbxVector4* controlPoints = mesh->GetControlPoints();
 	FbxGeometryElementNormal* normalElement = mesh->GetElementNormal();
 	FbxGeometryElementUV* uvElement = mesh->GetElementUV();
+
 
 	int polygonCount = mesh->GetPolygonCount();
 
 
 	for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++) {
+		// in each triangle.
 		for (int vertexIndex = 0; vertexIndex < mesh->GetPolygonSize(polygonIndex); vertexIndex++) {
+
 			int controlPointIndex = mesh->GetPolygonVertex(polygonIndex, vertexIndex);
 			FbxVector4 position = controlPoints[controlPointIndex];
 
 			VertexType vertex;
-			vertex.position = XMFLOAT3(static_cast<float>(position[0]), static_cast<float>(position[1]), static_cast<float>(position[2]));
+			float scale = 0.1f;
+			vertex.position = XMFLOAT3(static_cast<float>(position[0]) * scale,
+				static_cast<float>(position[1]) * scale,
+				static_cast<float>(position[2]) * scale);
 
 			if (normalElement) {
 				FbxVector4 normal;
 				mesh->GetPolygonVertexNormal(polygonIndex, vertexIndex, normal);
 				vertex.normal = XMFLOAT3(static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]));
 			}
+			else
+				vertex.normal = XMFLOAT3(0, 0, 0);
 
 			if (uvElement) {
 				FbxVector2 uv;
@@ -301,6 +325,8 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 				mesh->GetPolygonVertexUV(polygonIndex, vertexIndex, uvElement->GetName(), uv, unmapped);
 				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(uv[1]));
 			}
+			else
+				vertex.texture = XMFLOAT2(0, 0);
 
 			m_fbxvertices.push_back(vertex);
 			m_fbxindices.push_back(static_cast<uint32_t>(m_fbxvertices.size() - 1));
@@ -363,6 +389,15 @@ bool ModelClass::LoadFBXModel()
 	return true;
 }
 
+// Load all the fbx vertex data in.
+bool ModelClass::ExtractFBXModel() {
+	FbxNode* root = m_scene->GetRootNode();
+	if (!root) {
+		return false;
+	}
+
+	TraverseNode(root);
+}
 
 bool ModelClass::LoadModel(char* filename)
 {

@@ -18,9 +18,11 @@ public:
 	float cameraZPositin = -5.0f;
 
 	// Can directly use static rather then Singleton.
-	static float s_objectRotation;
+	static float s_objectRotationY;
 	static float s_objectPositionY;
 	static float s_global_var;
+	static float s_objectRotationZ;
+	static float s_objectRotationX;
 
 private:
 	// Prevent direct instantiation or copying

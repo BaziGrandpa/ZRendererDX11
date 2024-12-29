@@ -11,12 +11,19 @@ void MyDebugger::ShowDebugUIPanel() {
 	ImGui::Begin("Debug value");
 
 	// Camera Z Position
-	ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -10.0f, 10.0f);
+	ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -40.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
 
 	// Triangle Position
-	ImGui::SliderFloat(" Rotation", &GlobalSettings::s_objectRotation, -3.0f, 3.0f);
-	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotation);
+	ImGui::SliderFloat(" RotationX", &GlobalSettings::s_objectRotationX, -4.0f, 4.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationX);
+
+	ImGui::SliderFloat(" RotationY", &GlobalSettings::s_objectRotationY, -4.0f, 4.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationY);
+
+	// Triangle Position
+	ImGui::SliderFloat(" RotationZ", &GlobalSettings::s_objectRotationZ, -4.0f, 4.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationZ);
 
 	// Test static
 	ImGui::SliderFloat("object PositionY", &GlobalSettings::s_objectPositionY, -3.0f, 3.0f);

@@ -71,6 +71,8 @@ private:
 	void ReleaseModel();
 
 	bool LoadFBXModel();
+	bool ExtractFBXModel();
+	void TraverseNode(FbxNode* node);
 	void ProcessMesh(FbxMesh* mesh);
 
 private:
@@ -83,7 +85,7 @@ private:
 	FbxScene* m_scene;
 
 	std::vector<VertexType> m_fbxvertices;
-	std::vector<uint32_t> m_fbxindices;
+	std::vector<ULONG> m_fbxindices;
 };
 
 #endif

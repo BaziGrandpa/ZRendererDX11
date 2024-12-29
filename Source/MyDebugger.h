@@ -44,7 +44,7 @@ private:
 
 
 // all macro
-#define DISPLAY_LOG
+#define DISPLAY_LOG //If we don't want to conatin any debug code, just comment this line
 
 #ifdef DISPLAY_LOG
 #define LOG_DEBUG(msg) MyDebugger::LogDebug(msg)

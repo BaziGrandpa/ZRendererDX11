@@ -323,7 +323,7 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 				FbxVector2 uv;
 				bool unmapped;
 				mesh->GetPolygonVertexUV(polygonIndex, vertexIndex, uvElement->GetName(), uv, unmapped);
-				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(uv[1]));
+				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(1-uv[1]));
 			}
 			else
 				vertex.texture = XMFLOAT2(0, 0);
@@ -397,6 +397,7 @@ bool ModelClass::ExtractFBXModel() {
 	}
 
 	TraverseNode(root);
+	return true;
 }
 
 bool ModelClass::LoadModel(char* filename)

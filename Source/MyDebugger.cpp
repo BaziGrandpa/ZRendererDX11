@@ -5,14 +5,14 @@ int MyDebugger::MAX_DEBUG_LINES = 50;
 std::vector<MyDebugger::DebugOutput> MyDebugger::m_allOutput;
 
 void MyDebugger::ShowDebugUIPanel() {
-	auto& settings = GlobalSettings::GetInstance();
+	//auto& settings = GlobalSettings::GetInstance();
 	// Render my UI
 	// Create a new ImGui window
 	ImGui::Begin("Debug value");
 
 	// Camera Z Position
-	ImGui::SliderFloat("Camera Z Position", &settings.cameraZPositin, -40.0f, 10.0f);
-	ImGui::Text("Slider Value: %.3f", settings.cameraZPositin);
+	ImGui::SliderFloat("Camera Z Position", &GlobalSettings::s_cameraPositionZ, -40.0f, 10.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_cameraPositionZ);
 
 	// Triangle Position
 	ImGui::SliderFloat(" RotationX", &GlobalSettings::s_objectRotationX, -4.0f, 4.0f);

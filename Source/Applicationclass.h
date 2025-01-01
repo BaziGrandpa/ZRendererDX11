@@ -18,9 +18,12 @@
 #include "cameraclass.h"
 #include "modelclass.h"
 //#include "colorshaderclass.h"
-//#include "textureshaderclass.h"
+#include "textureshaderclass.h"
 #include "lightshaderclass.h"
 #include "lightclass.h"
+
+#include "displayplaneclass.h"
+#include "rendertextureclass.h"
 
 
 /////////////
@@ -47,6 +50,8 @@ public:
 
 private:
 	bool Render();
+	bool RenderModels();
+	bool RenderSceneToTexture();
 
 
 private:
@@ -56,6 +61,11 @@ private:
 
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
+
+	RenderTextureClass* m_RenderTexture;
+	DisplayPlaneClass* m_DisplayPlane;
+	TextureShaderClass* m_TextureShader;
+
 };
 
 #endif

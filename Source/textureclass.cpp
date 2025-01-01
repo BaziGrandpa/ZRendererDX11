@@ -34,8 +34,8 @@ bool TextureClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	result = LoadTarga32Bit(filename);
 	if (!result)
 	{
-		// If it fails, try 24
-		result = LoadTarga24Bit(filename);
+		// If it fails, try Lib
+		result = LoadTargaBySTB(filename);
 		if (!result)return false;
 	}
 
@@ -299,6 +299,50 @@ bool TextureClass::LoadTarga24Bit(char* filename)
 
 }
 
+
+bool TextureClass::LoadTargaBySTB(char* filename)
+{
+	int width, height, channels;
+	unsigned char* data = stbi_load(filename, &width, &height, &channels, 0);
+	if (!data) {
+		// Failed to load the image
+		return false;
+	}
+
+	// Calculate new size for 32bpp data
+	int imageSize = width * height * 4;  // 4 channels (RGBA)
+	if (m_targaData) {
+		delete[] m_targaData;  // Free existing memory to prevent leaks
+	}
+	m_targaData = new unsigned char[imageSize];
+
+	if (channels == 3) {
+		// If the image is 24bpp (RGB), copy data and add alpha channel
+		for (int i = 0; i < width * height; ++i) {
+			m_targaData[i * 4 + 0] = data[i * 3 + 0]; // R
+			m_targaData[i * 4 + 1] = data[i * 3 + 1]; // G
+			m_targaData[i * 4 + 2] = data[i * 3 + 2]; // B
+			m_targaData[i * 4 + 3] = 255;             // A
+		}
+	}
+	else if (channels == 4) {
+		// If the image is already 32bpp (RGBA), copy directly
+		memcpy(m_targaData, data, imageSize);
+	}
+	else {
+		// Handle other cases like grayscale (1 channel) if needed
+		stbi_image_free(data);
+		delete[] m_targaData;
+		m_targaData = nullptr;
+		return false;  // Unsupported format
+	}
+
+	// Free the memory allocated by stb_image
+	stbi_image_free(data);
+
+
+	return true;
+}
 
 int TextureClass::GetWidth()
 {

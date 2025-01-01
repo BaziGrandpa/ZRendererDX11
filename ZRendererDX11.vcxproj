@@ -23,6 +23,7 @@
     <ClCompile Include="Source\Cameraclass.cpp" />
     <ClCompile Include="Source\Colorshaderclass.cpp" />
     <ClCompile Include="Source\D3dclass.cpp" />
+    <ClCompile Include="Source\displayplaneclass.cpp" />
     <ClCompile Include="Source\globalSetting.cpp" />
     <ClCompile Include="Source\imgui\imgui.cpp" />
     <ClCompile Include="Source\imgui\imgui_demo.cpp" />
@@ -37,6 +38,8 @@
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Modelclass.cpp" />
     <ClCompile Include="Source\MyDebugger.cpp" />
+    <ClCompile Include="Source\rendertextureclass.cpp" />
+    <ClCompile Include="Source\stb_image_implementation.cpp" />
     <ClCompile Include="Source\systemclass.cpp" />
     <ClCompile Include="Source\textureclass.cpp" />
     <ClCompile Include="Source\textureshaderclass.cpp" />
@@ -46,6 +49,7 @@
     <ClInclude Include="Source\Cameraclass.h" />
     <ClInclude Include="Source\Colorshaderclass.h" />
     <ClInclude Include="Source\D3dclass.h" />
+    <ClInclude Include="Source\displayplaneclass.h" />
     <ClInclude Include="Source\globalSettings.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
     <ClInclude Include="Source\imgui\imgui.h" />
@@ -60,6 +64,8 @@
     <ClInclude Include="Source\lightshaderclass.h" />
     <ClInclude Include="Source\Modelclass.h" />
     <ClInclude Include="Source\MyDebugger.h" />
+    <ClInclude Include="Source\Rendertextureclass.h" />
+    <ClInclude Include="Source\stb_image.h" />
     <ClInclude Include="Source\systemclass.h" />
     <ClInclude Include="Source\test.h" />
     <ClInclude Include="Source\textureclass.h" />

@@ -11,6 +11,10 @@
 #include <d3d11.h>
 #include <stdio.h>
 
+#include "MyDebugger.h"
+#include "stb_image.h"
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TextureClass
@@ -43,6 +47,7 @@ public:
 private:
     bool LoadTarga32Bit(char*);
 	bool LoadTarga24Bit(char*);
+	bool LoadTargaBySTB(char*);
 
 private:
     unsigned char* m_targaData;

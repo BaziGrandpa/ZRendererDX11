@@ -78,8 +78,8 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Model = new ModelClass;
 
 	// Set the name of the texture file that we will be loading.
-	//strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
-	strcpy_s(textureFilename, "../ZRendererDX11/Resources/Dragon_color1.tga");
+	strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
+	//strcpy_s(textureFilename, "../ZRendererDX11/Resources/Dragon_color1.tga");
 
 	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
 	if (!result)

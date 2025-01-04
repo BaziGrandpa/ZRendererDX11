@@ -48,6 +48,8 @@ private:
 
 #ifdef DISPLAY_LOG
 #define LOG_DEBUG(msg) MyDebugger::LogDebug(msg)
+#define LOG_WARNING(msg) MyDebugger::LogWarning(msg)
+#define LOG_ERROR(msg) MyDebugger::LogError(msg)
 #else
 #define LOG_DEBUG(msg)
 #endif 

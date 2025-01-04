@@ -71,7 +71,7 @@ bool ModelClass::InitializeFBX()
 	sdkManager->SetIOSettings(ios);
 
 	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
-	if (!importer->Initialize("../ZRendererDX11/Resources/Models/Dragon.fbx", -1, sdkManager->GetIOSettings())) {
+	if (!importer->Initialize("../ZRendererDX11/Resources/Models/BoxMan.fbx", -1, sdkManager->GetIOSettings())) {
 		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
 		return false;
 	}
@@ -291,6 +291,7 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 
 	//actual vertexes position,osnormal,uv data
 	FbxVector4* controlPoints = mesh->GetControlPoints();
+
 	FbxGeometryElementNormal* normalElement = mesh->GetElementNormal();
 	FbxGeometryElementUV* uvElement = mesh->GetElementUV();
 
@@ -300,7 +301,10 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 
 	for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++) {
 		// in each triangle.
-		for (int vertexIndex = 0; vertexIndex < mesh->GetPolygonSize(polygonIndex); vertexIndex++) {
+		int polygonSize = mesh->GetPolygonSize(polygonIndex);
+		if (polygonSize != 3)
+			LOG_WARNING("Polygon size is not 3");
+		for (int vertexIndex = 0; vertexIndex < polygonSize; vertexIndex++) {
 
 			int controlPointIndex = mesh->GetPolygonVertex(polygonIndex, vertexIndex);
 			FbxVector4 position = controlPoints[controlPointIndex];

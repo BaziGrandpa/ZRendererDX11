@@ -35,10 +35,12 @@
     <ClCompile Include="Source\Inputclass.cpp" />
     <ClCompile Include="Source\lightclass.cpp" />
     <ClCompile Include="Source\lightshaderclass.cpp" />
+    <ClCompile Include="Source\LineRendererClass.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Modelclass.cpp" />
     <ClCompile Include="Source\MyDebugger.cpp" />
     <ClCompile Include="Source\rendertextureclass.cpp" />
+    <ClCompile Include="Source\SkinnedMeshModelClass.cpp" />
     <ClCompile Include="Source\stb_image_implementation.cpp" />
     <ClCompile Include="Source\systemclass.cpp" />
     <ClCompile Include="Source\textureclass.cpp" />
@@ -62,9 +64,11 @@
     <ClInclude Include="Source\Inputclass.h" />
     <ClInclude Include="Source\Lightclass.h" />
     <ClInclude Include="Source\lightshaderclass.h" />
+    <ClInclude Include="Source\LineRendererClass.h" />
     <ClInclude Include="Source\Modelclass.h" />
     <ClInclude Include="Source\MyDebugger.h" />
     <ClInclude Include="Source\Rendertextureclass.h" />
+    <ClInclude Include="Source\SkinnedMeshModelClass.h" />
     <ClInclude Include="Source\stb_image.h" />
     <ClInclude Include="Source\systemclass.h" />
     <ClInclude Include="Source\test.h" />

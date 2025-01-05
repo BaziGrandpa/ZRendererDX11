@@ -24,6 +24,7 @@
 
 #include "displayplaneclass.h"
 #include "rendertextureclass.h"
+#include "linerendererclass.h"
 
 
 /////////////
@@ -65,6 +66,7 @@ private:
 	RenderTextureClass* m_RenderTexture;
 	DisplayPlaneClass* m_DisplayPlane;
 	TextureShaderClass* m_TextureShader;
+	LineRendererClass* m_LineRenderer;
 
 };
 

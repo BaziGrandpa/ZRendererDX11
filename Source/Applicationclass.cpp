@@ -118,8 +118,8 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Create and initialize the render to texture object.
 	m_RenderTexture = new RenderTextureClass;
 
-	int textureWidth = screenWidth/5;
-	int textureHeight = screenHeight/5;
+	int textureWidth = screenWidth / 5;
+	int textureHeight = screenHeight / 5;
 	result = m_RenderTexture->Initialize(m_Direct3D->GetDevice(), textureWidth, textureHeight, SCREEN_DEPTH, SCREEN_NEAR, 1);
 	if (!result)
 	{
@@ -134,6 +134,10 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		return false;
 	}
+
+	// Initialize the line renderer object.
+	m_LineRenderer = new LineRendererClass;
+	result = m_LineRenderer->Initialize(m_Direct3D->GetDevice(), hwnd);
 
 	return true;
 }
@@ -197,6 +201,14 @@ void ApplicationClass::Shutdown()
 		delete m_Direct3D;
 		m_Direct3D = 0;
 	}
+
+	if (m_LineRenderer)
+	{
+		m_LineRenderer->Shutdown();
+		delete m_LineRenderer;
+		m_LineRenderer = 0;
+	}
+
 	return;
 }
 
@@ -215,6 +227,7 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
+
 	// Render the graphics scene.
 	result = Render();
 	if (!result)
@@ -235,8 +248,8 @@ bool ApplicationClass::RenderSceneToTexture()
 	// Set the position of the camera for viewing the cube.
 	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
 	m_Camera->Render();
-	
-	result =RenderModels();
+
+	result = RenderModels();
 
 	if (!result)
 	{
@@ -318,6 +331,12 @@ bool ApplicationClass::Render()
 	{
 		return false;
 	}
+
+	// Render Line
+
+	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
+	m_LineRenderer->Render(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDevice(), worldMatrix, viewMatrix, projectionMatrix);
 
 
 

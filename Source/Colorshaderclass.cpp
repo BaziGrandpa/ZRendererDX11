@@ -61,7 +61,7 @@ void ColorShaderClass::Shutdown()
 }
 
 bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
-	XMMATRIX projectionMatrix)
+	XMMATRIX projectionMatrix, bool isLine)
 {
 	bool result;
 
@@ -74,7 +74,7 @@ bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(deviceContext, indexCount, isLine);
 
 	return true;
 }
@@ -276,7 +276,7 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
-	
+
 
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -301,8 +301,8 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_matrixBuffer, 0);
-	
-	
+
+
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
@@ -312,17 +312,25 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	return true;
 }
 
-void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, bool isLine)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);
+	if (isLine)
+		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	else
+		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(m_vertexShader, NULL, 0);
 	deviceContext->PSSetShader(m_pixelShader, NULL, 0);
 
 	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	if (isLine)
+		deviceContext->Draw(indexCount, 0);
+	else
+		deviceContext->DrawIndexed(indexCount, 0, 0);
+
 
 	return;
 }

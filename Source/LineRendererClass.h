@@ -39,7 +39,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, ID3D11Device*, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
 		XMMATRIX projectionMatrix);
-	void AddLine(XMFLOAT3, XMFLOAT3, XMFLOAT4);
+	void AddLine(XMFLOAT3, XMFLOAT3, XMFLOAT4, bool = true);
 	void ClearLines();
 
 private:

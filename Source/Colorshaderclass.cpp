@@ -60,7 +60,7 @@ void ColorShaderClass::Shutdown()
 	return;
 }
 
-bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
+bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, ID3D11Device* device, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
 	XMMATRIX projectionMatrix, bool isLine)
 {
 	bool result;
@@ -74,7 +74,7 @@ bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount, isLine);
+	RenderShader(deviceContext,device, indexCount, isLine);
 
 	return true;
 }
@@ -312,7 +312,7 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	return true;
 }
 
-void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, bool isLine)
+void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, ID3D11Device* device, int indexCount, bool isLine)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);
@@ -327,7 +327,24 @@ void ColorShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int inde
 
 	// Render the triangle.
 	if (isLine)
+	{
+		D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+		depthStencilDesc.DepthEnable = false;                             // Disable depth testing
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;    // Prevent depth writes
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;             // Always pass depth test
+		depthStencilDesc.StencilEnable = false;                           // Stencil testing is optional
+
+		ID3D11DepthStencilState* noDepthState = nullptr;
+		device->CreateDepthStencilState(&depthStencilDesc, &noDepthState);
+		ID3D11DepthStencilState* originalState = nullptr;
+		UINT stencilRef = 0;
+		deviceContext->OMGetDepthStencilState(&originalState, &stencilRef);
+
+		// Set the custom depth stencil state
+		deviceContext->OMSetDepthStencilState(noDepthState, 0);
 		deviceContext->Draw(indexCount, 0);
+		deviceContext->OMSetDepthStencilState(originalState, stencilRef);
+	}
 	else
 		deviceContext->DrawIndexed(indexCount, 0, 0);
 

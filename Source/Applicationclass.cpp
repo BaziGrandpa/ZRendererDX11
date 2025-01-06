@@ -134,9 +134,13 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		return false;
 	}
+	// Initialize skinned mesh model
+	m_SkinnedMesh = new SkinnedMeshClass;
+	m_SkinnedMesh->Initialize("../ZRendererDX11/Resources/Models/BoxMan.fbx", "../ZRendererDX11/Resources/stone01.tga");
 
 	// Initialize the line renderer object.
 	m_LineRenderer = new LineRendererClass;
+	m_SkinnedMesh->ConstructBoneLines(m_LineRenderer);
 	result = m_LineRenderer->Initialize(m_Direct3D->GetDevice(), hwnd);
 
 	return true;
@@ -273,10 +277,13 @@ bool ApplicationClass::RenderModels() {
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	//m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(projectionMatrix);
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
+	worldMatrix = XMMatrixScaling(1000, 1000, 1000);
+
+	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationX(GlobalSettings::s_objectRotationX));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationY(GlobalSettings::s_objectRotationY));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationZ(GlobalSettings::s_objectRotationZ));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixTranslation(0.0f, GlobalSettings::s_objectPositionY, 0.0f));
@@ -322,20 +329,21 @@ bool ApplicationClass::Render()
 	// Setup matrices - Bottom left display plane.
 	worldMatrix = XMMatrixTranslation(-1.5f, 2.5f, 0.0f);
 	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetProjectionMatrix(projectionMatrix);
-	// Render the display plane using the texture shader and the render texture resource.
-	m_DisplayPlane->Render(m_Direct3D->GetDeviceContext());
+	//m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(projectionMatrix);
+	//// Render the display plane using the texture shader and the render texture resource.
+	//m_DisplayPlane->Render(m_Direct3D->GetDeviceContext());
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DisplayPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_RenderTexture->GetShaderResourceView());
-	if (!result)
-	{
-		return false;
-	}
+	//result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DisplayPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_RenderTexture->GetShaderResourceView());
+	//if (!result)
+	//{
+	//	return false;
+	//}
 
 	// Render Line
 
 	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-
+	//worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
 	m_LineRenderer->Render(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDevice(), worldMatrix, viewMatrix, projectionMatrix);
 
 

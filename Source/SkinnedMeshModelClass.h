@@ -8,14 +8,15 @@
 #include <fbxsdk.h>
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <unordered_map>
 
 #include "textureclass.h"
+#include "LineRendererClass.h"
 
 using namespace DirectX;
 using namespace std;
 using namespace fbxsdk;
-
 
 class SkinnedMeshClass
 {
@@ -36,6 +37,20 @@ private:
 		float nx, ny, nz;
 	};
 
+	struct Bone
+	{
+		int index;
+
+		string name;
+		XMMATRIX bindPoseMatrix;
+		XMFLOAT3 localT;
+		XMFLOAT3 localR;
+		XMFLOAT3 localS;
+
+		Bone* parent;
+		vector<Bone*> children;
+	};
+
 public:
 	SkinnedMeshClass();
 	~SkinnedMeshClass();
@@ -51,7 +66,7 @@ public:
 	// 3.load fbx animations, store animation curve for each bone
 	//	3.1 should have a key velue pair for each bone, key is the bone index, value is the animation curve
 	//	3.2 
-	void Initialize(char* modelPath, char* textureFilename);
+	bool Initialize(const char* modelPath, const char* textureFilename);
 
 	// 1.push the mesh data to the vertex buffer and index buffer
 	// 2.push the animated bone data to constant buffer 
@@ -62,13 +77,19 @@ public:
 
 	void Shutdown();
 
+	void ConstructBoneLines(LineRendererClass*);
+
+	Bone* GetBoneRoot() { return m_boneRoot; }
+
 private:
-	void LoadFBXBones(FbxNode* node);
+	bool LoadFBXBones(FbxNode* node);
+	void ProcessBone(FbxNode* node, FbxPose* bindPose, Bone* current, int depth, int* index);
 	void LoadFBXMesh(char* modelPath);
 
 	void LoadFBXAnimations(FbxScene* scene);
 
 	void LoadTexture(char* textureFilename);
+	XMMATRIX FbxMatrixToXMMATRIX(const FbxMatrix& fbxMatrix);
 
 private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
@@ -82,16 +103,11 @@ private:
 	std::vector<VertexType> m_fbxvertices;
 	std::vector<ULONG> m_fbxindices;
 
+	// for bone hierarchy
+	Bone* m_boneRoot;
+
 	// for bone data
-	struct Bone
-	{
-		int parentIndex;
-		string name;
-		XMFLOAT4X4 bindPoseMatrix;
-		XMFLOAT3 localT;
-		XMFLOAT3 localR;
-		XMFLOAT3 localS;
-	};
+
 
 	unordered_map<int, Bone> m_bones;
 

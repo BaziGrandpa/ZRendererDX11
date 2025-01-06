@@ -25,6 +25,7 @@
 #include "displayplaneclass.h"
 #include "rendertextureclass.h"
 #include "linerendererclass.h"
+#include "SkinnedMeshModelClass.h"
 
 
 /////////////
@@ -68,6 +69,7 @@ private:
 	TextureShaderClass* m_TextureShader;
 	LineRendererClass* m_LineRenderer;
 
+	SkinnedMeshClass* m_SkinnedMesh;
 };
 
 #endif

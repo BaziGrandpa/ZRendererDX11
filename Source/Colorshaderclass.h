@@ -32,7 +32,7 @@ public:
 	~ColorShaderClass();
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, bool);
+	bool Render(ID3D11DeviceContext*, ID3D11Device*, int, XMMATRIX, XMMATRIX, XMMATRIX, bool);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -40,7 +40,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX);
-	void RenderShader(ID3D11DeviceContext*, int, bool);
+	void RenderShader(ID3D11DeviceContext*, ID3D11Device*, int, bool);
 
 private:
 	ID3D11VertexShader* m_vertexShader;

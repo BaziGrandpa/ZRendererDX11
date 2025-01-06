@@ -9,8 +9,17 @@ LineRendererClass::~LineRendererClass()
 {
 }
 
-bool LineRendererClass::Initialize(ID3D11Device* device,  HWND hwnd)
+bool LineRendererClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
+
+	//m_Lines.clear();
+	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(2.5, 0, 0), XMFLOAT4(1.0, 0, 0, 1.0));
+	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(-2.5, 0, 0), XMFLOAT4(0, 1.0, 0, 1.0));
+	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 2.5, 0), XMFLOAT4(1.0, 1.0, 0, 1.0));
+	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, -2.5, 0), XMFLOAT4(1.0, 0, 1.0, 1.0));
+
+
+
 	// Create the color shader object.
 	m_ColorShader = new ColorShaderClass;
 	// 1.Compile the vertex and pixel shaders.				
@@ -47,15 +56,18 @@ bool LineRendererClass::Render(ID3D11DeviceContext* context, ID3D11Device* devic
 	XMMATRIX projectionMatrix)
 {
 
-	MyLine line{ XMFLOAT3(0,0,0),XMFLOAT3(0,2.5,0),XMFLOAT4(1.0,0,0,1.0) };
+	//MyLine line{ XMFLOAT3(0,0,0),XMFLOAT3(0,2.5,0),XMFLOAT4(1.0,0,0,1.0) };
+	int lineCount = m_Lines.size();
+	int vertexCount = lineCount * 2;
 
 	// create vertex array
-	VertexType vertices[2] = {
-		{line.start, line.color},
-		{line.end, XMFLOAT4(1.0,1.0,0,1.0)}
-	};
+	VertexType* vertices = new VertexType[vertexCount];
+	for (int i = 0; i < lineCount; i++)
+	{
+		vertices[i * 2] = { m_Lines[i].start, m_Lines[i].color };
+		vertices[i * 2 + 1] = { m_Lines[i].end, m_Lines[i].color };
+	}
 
-	int vertexCount = 2;
 
 	// create vertex buffer
 	D3D11_BUFFER_DESC vertexBufferDesc = {};
@@ -73,17 +85,34 @@ bool LineRendererClass::Render(ID3D11DeviceContext* context, ID3D11Device* devic
 	context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
 	// Set Matrix
-	m_ColorShader->Render(context, vertexCount, worldMatrix, viewMatrix, projectionMatrix, true);
+	m_ColorShader->Render(context,device, vertexCount, worldMatrix, viewMatrix, projectionMatrix, true);
 
 	return true;
 }
 
-void LineRendererClass::AddLine(XMFLOAT3 start, XMFLOAT3 end, XMFLOAT4 color)
+void LineRendererClass::AddLine(XMFLOAT3 start, XMFLOAT3 end, XMFLOAT4 color, bool random)
 {
+	XMFLOAT4 colors[] = {
+		XMFLOAT4(1.0, 0, 0, 1.0),
+		XMFLOAT4(0, 1.0, 0, 1.0),
+		XMFLOAT4(1.0, 1.0, 0, 1.0),
+		XMFLOAT4(1.0, 0, 1.0, 1.0) };
+
 	MyLine line;
 	line.start = start;
 	line.end = end;
-	line.color = color;
+	if (random)
+	{
+		int currentColor = m_Lines.size() % 4;
+		line.color = colors[currentColor];
+	}
+	else line.color = color;
+
+
 	m_Lines.push_back(line);
 }
 
+void LineRendererClass::ClearLines()
+{
+	m_Lines.clear();
+}

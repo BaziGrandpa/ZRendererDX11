@@ -11,7 +11,7 @@ void MyDebugger::ShowDebugUIPanel() {
 	ImGui::Begin("Debug value");
 
 	// Camera Z Position
-	ImGui::SliderFloat("Camera Z Position", &GlobalSettings::s_cameraPositionZ, -40.0f, 10.0f);
+	ImGui::SliderFloat("Camera Z Position", &GlobalSettings::s_cameraPositionZ, -100.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_cameraPositionZ);
 
 	// Triangle Position

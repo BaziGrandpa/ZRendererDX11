@@ -15,6 +15,8 @@ A lightweight and customizable 3D rendering engine built with DirectX 11. This p
 ---
 
 ## **Getting Started**
+![Funny GIF](./dragon.gif)
+
 
 ### **Requirements**
 - Windows 10 or later.

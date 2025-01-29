@@ -23,6 +23,7 @@ ApplicationClass::ApplicationClass()
 
 	m_RenderTexture = 0;
 	m_DisplayPlane = 0;
+	m_animationController = 0;
 }
 
 
@@ -72,15 +73,15 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 
 	// Set the file name of the model.
-	strcpy_s(modelFilename, "../ZRendererDX11/Resources/Models/cube.txt");
-
-	// Create and initialize the model object.
-	m_Model = new ModelClass;
+	strcpy_s(modelFilename, "../ZRendererDX11/Resources/Models/BoxMan.fbx");
 
 	// Set the name of the texture file that we will be loading.
 	strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");
-	//strcpy_s(textureFilename, "../ZRendererDX11/Resources/Dragon_color1.tga");
 
+
+	//strcpy_s(textureFilename, "../ZRendererDX11/Resources/Dragon_color1.tga");
+	// Create and initialize the model object.
+	m_Model = new ModelClass;
 	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
 	if (!result)
 	{
@@ -92,6 +93,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Create and initialize the light shader object.
 	m_LightShader = new LightShaderClass;
 
+	// compile vs,ps for light.
 	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
@@ -134,13 +136,26 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		return false;
 	}
-	// Initialize skinned mesh model
+
+
+	// Initialize skinned mesh model, but here only get the 
 	m_SkinnedMesh = new SkinnedMeshClass;
-	m_SkinnedMesh->Initialize("../ZRendererDX11/Resources/Models/BoxMan.fbx", "../ZRendererDX11/Resources/stone01.tga");
+	m_SkinnedMesh->Initialize(modelFilename, "../ZRendererDX11/Resources/stone01.tga");
 
 	// Initialize the line renderer object.
 	m_LineRenderer = new LineRendererClass;
-	m_SkinnedMesh->ConstructBoneLines(m_LineRenderer);
+	//m_SkinnedMesh->ConstructBoneLines(m_LineRenderer);
+	FbxScene* scene = m_SkinnedMesh->GetScene();
+
+
+	m_Skeleton = new SkeletonClass;
+	m_Skeleton->InitSkeletonRoot(scene->GetRootNode());
+	m_Skeleton->InitAnimationData(scene);
+	//m_Skeleton->ContructVisualBone(m_LineRenderer);
+
+	m_animationController = new AnimationController(m_Skeleton, m_LineRenderer);
+	m_animationController->Play();
+
 	result = m_LineRenderer->Initialize(m_Direct3D->GetDevice(), hwnd);
 
 	return true;
@@ -213,6 +228,17 @@ void ApplicationClass::Shutdown()
 		m_LineRenderer = 0;
 	}
 
+	if (m_Skeleton)
+	{
+		delete m_Skeleton;
+		m_Skeleton = 0;
+	}
+	if (m_animationController)
+	{
+		delete m_animationController;
+		m_animationController = 0;
+	}
+
 	return;
 }
 
@@ -222,15 +248,17 @@ bool ApplicationClass::Frame()
 
 	// logic
 	//auto& settings = GlobalSettings::GetInstance();
-	m_Camera->SetPosition(0.0f, 0.0f, GlobalSettings::s_cameraPositionZ);
+	m_Camera->SetPosition(0.0f, GlobalSettings::s_cameraPositionY, GlobalSettings::s_cameraPositionZ);
+	m_animationController->Tick();
+
 
 	bool result;
 	// Render the scene to a render texture.
-	result = RenderSceneToTexture();
-	if (!result)
-	{
-		return false;
-	}
+	//result = RenderSceneToTexture();
+	//if (!result)
+	//{
+	//	return false;
+	//}
 
 	// Render the graphics scene.
 	result = Render();
@@ -277,11 +305,12 @@ bool ApplicationClass::RenderModels() {
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
-	//m_Direct3D->GetProjectionMatrix(projectionMatrix);
-	m_Direct3D->GetOrthoMatrix(projectionMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	//m_Direct3D->GetOrthoMatrix(projectionMatrix);
 
+	int scale = 10;
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixScaling(1000, 1000, 1000);
+	worldMatrix = XMMatrixScaling(scale, scale, scale);
 
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationX(GlobalSettings::s_objectRotationX));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationY(GlobalSettings::s_objectRotationY));
@@ -320,6 +349,7 @@ bool ApplicationClass::Render()
 
 	result = RenderModels();
 
+
 	if (!result)
 	{
 		return false;
@@ -329,21 +359,23 @@ bool ApplicationClass::Render()
 	// Setup matrices - Bottom left display plane.
 	worldMatrix = XMMatrixTranslation(-1.5f, 2.5f, 0.0f);
 	m_Camera->GetViewMatrix(viewMatrix);
-	//m_Direct3D->GetProjectionMatrix(projectionMatrix);
-	m_Direct3D->GetOrthoMatrix(projectionMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	//m_Direct3D->GetOrthoMatrix(projectionMatrix);
 	//// Render the display plane using the texture shader and the render texture resource.
 	//m_DisplayPlane->Render(m_Direct3D->GetDeviceContext());
 
-	//result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DisplayPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_RenderTexture->GetShaderResourceView());
-	//if (!result)
-	//{
-	//	return false;
-	//}
+	/*result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DisplayPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_RenderTexture->GetShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}*/
 
 	// Render Line
 
 	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 	//worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
+	//worldMatrix = XMMatrixRotationY(GlobalSettings::s_objectRotationY);
+	//worldMatrix = XMMatrixRotationZ(GlobalSettings::s_objectRotationZ);
 	m_LineRenderer->Render(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDevice(), worldMatrix, viewMatrix, projectionMatrix);
 
 

@@ -16,7 +16,7 @@ bool SkinnedMeshClass::Initialize(const char* modelPath, const char* textureFile
 	sdkManager->SetIOSettings(ios);
 
 	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
-	if (!importer->Initialize("../ZRendererDX11/Resources/Models/BoxMan.fbx", -1, sdkManager->GetIOSettings())) {
+	if (!importer->Initialize(modelPath, -1, sdkManager->GetIOSettings())) {
 		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
 		return false;
 	}
@@ -50,6 +50,7 @@ bool SkinnedMeshClass::LoadFBXBones(FbxNode* node)
 	}
 	if (!bindPose) {
 		LOG_WARNING("No bind pose found in the scene!");
+		return false;
 	}
 
 	// Process all child nodes from the root
@@ -174,7 +175,7 @@ void SkinnedMeshClass::ConstructBoneLines(LineRendererClass* lineRenderer) {
 	while (!boneQueue.empty()) {
 		Bone* current = boneQueue.front();
 		boneQueue.pop();
-		//LOG_DEBUG("bone name: " + current->name + " index: " + to_string(current->index));
+		LOG_DEBUG("bone name: " + current->name + " index: " + to_string(current->index));
 		//construct lines 
 
 		XMVECTOR startPos = XMVector4Transform(originalPos, current->bindPoseMatrix);

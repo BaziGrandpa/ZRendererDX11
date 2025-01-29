@@ -24,6 +24,7 @@ public:
 	static float s_objectRotationZ;
 	static float s_objectRotationX;
 	static float s_cameraPositionZ;
+	static float s_cameraPositionY;
 
 private:
 	// Prevent direct instantiation or copying

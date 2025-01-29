@@ -11,12 +11,12 @@ LineRendererClass::~LineRendererClass()
 
 bool LineRendererClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
-
-	//m_Lines.clear();
-	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(2.5, 0, 0), XMFLOAT4(1.0, 0, 0, 1.0));
-	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(-2.5, 0, 0), XMFLOAT4(0, 1.0, 0, 1.0));
-	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 2.5, 0), XMFLOAT4(1.0, 1.0, 0, 1.0));
-	//AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, -2.5, 0), XMFLOAT4(1.0, 0, 1.0, 1.0));
+	//AddLine(XMFLOAT3(0, 0.1, 0), XMFLOAT3(1.2, 0.1, 0), XMFLOAT4(1.0, 0, 0, 1.0));
+	/*m_Lines.clear();
+	AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(2.5, 0, 0), XMFLOAT4(1.0, 0, 0, 1.0));
+	AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(-2.5, 0, 0), XMFLOAT4(0, 1.0, 0, 1.0));
+	AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 2.5, 0), XMFLOAT4(1.0, 1.0, 0, 1.0));
+	AddLine(XMFLOAT3(0, 0, 0), XMFLOAT3(0, -2.5, 0), XMFLOAT4(1.0, 0, 1.0, 1.0));*/
 
 
 

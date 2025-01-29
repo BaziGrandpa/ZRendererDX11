@@ -14,15 +14,19 @@ void MyDebugger::ShowDebugUIPanel() {
 	ImGui::SliderFloat("Camera Z Position", &GlobalSettings::s_cameraPositionZ, -100.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_cameraPositionZ);
 
+	ImGui::SliderFloat("Camera Y Position", &GlobalSettings::s_cameraPositionY, -10.0f, 10.0f);
+	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_cameraPositionY);
+	
+
 	// Triangle Position
-	ImGui::SliderFloat(" RotationX", &GlobalSettings::s_objectRotationX, -4.0f, 4.0f);
+	ImGui::SliderFloat(" RotationX", &GlobalSettings::s_objectRotationX, -10.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationX);
 
-	ImGui::SliderFloat(" RotationY", &GlobalSettings::s_objectRotationY, -4.0f, 4.0f);
+	ImGui::SliderFloat(" RotationY", &GlobalSettings::s_objectRotationY, -10.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationY);
 
 	// Triangle Position
-	ImGui::SliderFloat(" RotationZ", &GlobalSettings::s_objectRotationZ, -4.0f, 4.0f);
+	ImGui::SliderFloat(" RotationZ", &GlobalSettings::s_objectRotationZ, -10.0f, 10.0f);
 	ImGui::Text("Slider Value: %.3f", GlobalSettings::s_objectRotationZ);
 
 	// Test static
@@ -66,6 +70,12 @@ void MyDebugger::LogDebug(string content) {
 
 	MyDebugger::DebugOutput output{ MyDebugger::DebugType::Log,content };
 	Output(output);
+}
+
+void MyDebugger::LogDebug(const DirectX::XMFLOAT4& vec) {
+	string output = "[DEBUG]: XMFLOAT4(" + to_string(vec.x) + " " + to_string(vec.y) + " " + to_string(vec.z) + " " + to_string(vec.w);
+	LogDebug(output);
+
 }
 
 void MyDebugger::LogWarning(string content) {

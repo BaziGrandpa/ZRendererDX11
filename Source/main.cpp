@@ -3,6 +3,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "systemclass.h"
 
+//#if _DEBUG
+//#pragma comment (lib,"E:\\Work\\AutoDesk\\FBX\\SDK\\2020.3.7\\lib\\x64\\debug\\libfbxsdk-md.lib")
+//#pragma comment (lib,"E:\\Work\\AutoDesk\\FBX\\SDK\\2020.3.7\\lib\\x64\\debug\\libxml2-md.lib")
+//#pragma comment (lib,"E:\\Work\\AutoDesk\\FBX\\SDK\\2020.3.7\\lib\\x64\\debug\\zlib-md.lib")
+//#else
+//#endif
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)

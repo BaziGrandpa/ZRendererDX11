@@ -51,7 +51,7 @@ public:
 	~ModelClass();
 
 	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, char*, char*);
-	bool InitializeFBX();
+	bool InitializeFBX(char*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 

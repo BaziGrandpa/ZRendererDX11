@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <string>
+#include <DirectXMath.h>
 
 #include "globalSettings.h"
 #include "imgui/imgui.h"
@@ -32,6 +33,7 @@ public:
 	static void ShowDebugUIPanel();
 	static void ShowDebugOutputPanel();
 	static void LogDebug(string content);
+	static void LogDebug(const DirectX::XMFLOAT4& vec);
 	static void LogWarning(string content);
 	static void LogError(string content);
 

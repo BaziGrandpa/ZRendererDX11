@@ -81,6 +81,8 @@ public:
 
 	Bone* GetBoneRoot() { return m_boneRoot; }
 
+	FbxScene* GetScene() { return m_scene; }
+
 private:
 	bool LoadFBXBones(FbxNode* node);
 	void ProcessBone(FbxNode* node, FbxPose* bindPose, Bone* current, int depth, int* index);

@@ -27,7 +27,7 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 {
 	bool result;
 
-	result = InitializeFBX();
+	result = InitializeFBX(modelFilename);
 	if (!result)
 	{
 		return false;
@@ -35,13 +35,6 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 
 	// Load the FBX model.
 	result = ExtractFBXModel();
-	if (!result)
-	{
-		return false;
-	}
-
-	// Load in the model data.
-	result = LoadModel(modelFilename);
 	if (!result)
 	{
 		return false;
@@ -64,14 +57,14 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	return true;
 }
 
-bool ModelClass::InitializeFBX()
+bool ModelClass::InitializeFBX(char* modelFilename)
 {
 	FbxManager* sdkManager = FbxManager::Create();
 	FbxIOSettings* ios = FbxIOSettings::Create(sdkManager, IOSROOT);
 	sdkManager->SetIOSettings(ios);
 
 	FbxImporter* importer = FbxImporter::Create(sdkManager, "");
-	if (!importer->Initialize("../ZRendererDX11/Resources/Models/BoxMan.fbx", -1, sdkManager->GetIOSettings())) {
+	if (!importer->Initialize(modelFilename, -1, sdkManager->GetIOSettings())) {
 		printf("FBX Import Error: %s\n", importer->GetStatus().GetErrorString());
 		return false;
 	}

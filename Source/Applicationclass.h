@@ -26,6 +26,8 @@
 #include "rendertextureclass.h"
 #include "linerendererclass.h"
 #include "SkinnedMeshModelClass.h"
+#include "Skeleton.h"
+#include "AnimationController.h"
 
 
 /////////////
@@ -70,6 +72,9 @@ private:
 	LineRendererClass* m_LineRenderer;
 
 	SkinnedMeshClass* m_SkinnedMesh;
+	SkeletonClass* m_Skeleton;
+
+	AnimationController* m_animationController;
 };
 
 #endif

@@ -193,7 +193,7 @@ void SkeletonClass::ExtractBindpose(Bone* bone) {
 	auto firstFrame = m_animationData.at(boneName)[0];
 	bone->bindPose = firstFrame;
 	for (Bone* child : bone->children) {
-		ExtractBindpose(bone);
+		ExtractBindpose(child);
 	}
 
 }

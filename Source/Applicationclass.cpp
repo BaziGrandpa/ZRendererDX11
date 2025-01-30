@@ -73,7 +73,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 
 	// Set the file name of the model.
-	strcpy_s(modelFilename, "../ZRendererDX11/Resources/Models/BoxMan.fbx");
+	strcpy_s(modelFilename, "../ZRendererDX11/Resources/Models/SnowMan.fbx");
 
 	// Set the name of the texture file that we will be loading.
 	strcpy_s(textureFilename, "../ZRendererDX11/Resources/stone01.tga");

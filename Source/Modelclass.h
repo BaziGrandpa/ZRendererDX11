@@ -37,6 +37,21 @@ private:
 		XMFLOAT3 normal;
 	};
 
+	struct SkinnedVertexType
+	{
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
+		XMFLOAT3 normal;
+		XMUINT4  boneIndices; // Max 4 bones per vertex
+		XMFLOAT4 boneWeights;    // Normalized weights
+	};
+
+	// Structure to store bone weight data per vertex
+	struct VertexWeight {
+		int boneIndex;
+		float weight;
+	};
+
 	struct ModelType
 	{
 		float x, y, z;
@@ -67,13 +82,14 @@ private:
 	void ReleaseTexture();
 
 	bool LoadModel(char*);
-	
+
 	void ReleaseModel();
 
 	bool LoadFBXModel();
 	bool ExtractFBXModel();
 	void TraverseNode(FbxNode* node);
 	void ProcessMesh(FbxMesh* mesh);
+	void ProcessSkinnedMesh(FbxMesh* mesh);
 
 private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
@@ -86,6 +102,11 @@ private:
 
 	std::vector<VertexType> m_fbxvertices;
 	std::vector<ULONG> m_fbxindices;
+
+	std::vector<SkinnedVertexType> m_fbxSkinnedVertices;
+	std::vector<ULONG> m_fbxSkinnedIndices;
+
+	std::vector<std::vector<VertexWeight>> GetVertexWeights(FbxMesh* mesh);
 };
 
 #endif

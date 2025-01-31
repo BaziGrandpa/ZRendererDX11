@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include <DirectXMath.h>
+#include <d3d11.h>
+#include <fstream>
 
 #include "globalSettings.h"
 #include "imgui/imgui.h"
@@ -36,6 +38,7 @@ public:
 	static void LogDebug(const DirectX::XMFLOAT4& vec);
 	static void LogWarning(string content);
 	static void LogError(string content);
+	static void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename);
 
 private:
 	static int MAX_DEBUG_LINES;

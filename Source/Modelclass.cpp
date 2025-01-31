@@ -270,6 +270,7 @@ void ModelClass::ReleaseTexture()
 void ModelClass::TraverseNode(FbxNode* node) {
 	if (FbxMesh* mesh = node->GetMesh()) {
 		ProcessMesh(mesh);
+		//ProcessSkinnedMesh(mesh);
 		LOG_DEBUG(mesh->GetName());
 	}
 
@@ -303,7 +304,7 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 			FbxVector4 position = controlPoints[controlPointIndex];
 
 			VertexType vertex;
-			float scale = 0.1f;
+			float scale = 1.0f;
 			vertex.position = XMFLOAT3(static_cast<float>(position[0]) * scale,
 				static_cast<float>(position[1]) * scale,
 				static_cast<float>(position[2]) * scale);
@@ -320,7 +321,7 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 				FbxVector2 uv;
 				bool unmapped;
 				mesh->GetPolygonVertexUV(polygonIndex, vertexIndex, uvElement->GetName(), uv, unmapped);
-				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(1-uv[1]));
+				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(1 - uv[1]));
 			}
 			else
 				vertex.texture = XMFLOAT2(0, 0);
@@ -330,6 +331,148 @@ void ModelClass::ProcessMesh(FbxMesh* mesh) {
 		}
 	}
 }
+
+// Extract skinned mesh data
+void ModelClass::ProcessSkinnedMesh(FbxMesh* mesh) {
+	int skinCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
+	if (skinCount <= 0)
+	{
+
+		LOG_DEBUG("No skin found for " + string(mesh->GetName()));
+		return;
+	}
+
+	LOG_DEBUG("skin count" + std::to_string(skinCount));
+	vector<vector<ModelClass::VertexWeight>> vertexIndex2Weights = GetVertexWeights(mesh);
+
+
+	FbxVector4* controlPoints = mesh->GetControlPoints();
+	FbxGeometryElementNormal* normalElement = mesh->GetElementNormal();
+	FbxGeometryElementUV* uvElement = mesh->GetElementUV();
+	int polygonCount = mesh->GetPolygonCount();
+
+	for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++) {
+		int polygonSize = mesh->GetPolygonSize(polygonIndex);
+		if (polygonSize != 3)
+			LOG_WARNING("Polygon size is not 3");
+		for (int vertexIndex = 0; vertexIndex < polygonSize; vertexIndex++) {
+
+			int controlPointIndex = mesh->GetPolygonVertex(polygonIndex, vertexIndex);
+
+			FbxVector4 position = controlPoints[controlPointIndex];
+
+			// better explicitly declare
+			SkinnedVertexType vertex{};
+
+			vertex.position = XMFLOAT3(static_cast<float>(position[0]),
+				static_cast<float>(position[1]),
+				static_cast<float>(position[2]));
+
+			if (normalElement) {
+				FbxVector4 normal;
+				mesh->GetPolygonVertexNormal(polygonIndex, vertexIndex, normal);
+				vertex.normal = XMFLOAT3(static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]));
+			}
+			else
+				vertex.normal = XMFLOAT3(0, 0, 0);
+
+			if (uvElement) {
+				FbxVector2 uv;
+				bool unmapped;
+				mesh->GetPolygonVertexUV(polygonIndex, vertexIndex, uvElement->GetName(), uv, unmapped);
+				vertex.texture = XMFLOAT2(static_cast<float>(uv[0]), static_cast<float>(1 - uv[1]));
+			}
+			else
+				vertex.texture = XMFLOAT2(0, 0);
+
+
+			//so now 
+			auto bonesAndWeights = vertexIndex2Weights[controlPointIndex];
+			for (size_t i = 0; i < bonesAndWeights.size(); i++)
+			{
+				int boneIndex = bonesAndWeights[i].boneIndex;
+				float boneWeight = bonesAndWeights[i].weight;
+				// bonesAndWeights.size() maximum 4
+				
+				switch (i)
+				{
+				case 0:
+					vertex.boneWeights.x = boneWeight;
+					vertex.boneIndices.x = boneIndex;
+					break;
+				case 1:
+					vertex.boneWeights.y = boneWeight;
+					vertex.boneIndices.y = boneIndex;
+					break;
+				case 2:
+					vertex.boneWeights.z = boneWeight;
+					vertex.boneIndices.z = boneIndex;
+					break;
+				case 3:
+					vertex.boneWeights.w = boneWeight;
+					vertex.boneIndices.w = boneIndex;
+					break;
+				default:
+					break;
+				}
+
+			}
+
+			m_fbxSkinnedVertices.push_back(vertex);
+			m_fbxindices.push_back(static_cast<uint32_t>(m_fbxvertices.size() - 1));
+		}
+	}
+}
+
+vector<vector<ModelClass::VertexWeight>> ModelClass::GetVertexWeights(FbxMesh* mesh) {
+
+	//the index of outer vector would be vertex index.
+	// 0 {boneindex1,weight1},{boneindex2,weight2}...
+	// 1 {boneindex1,weight1},{boneindex2,weight2}...
+	// ...
+	vector<vector<ModelClass::VertexWeight>> result(mesh->GetControlPointsCount());
+
+	int skinCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
+
+	for (size_t i = 0; i < skinCount; i++)
+	{
+		// get weights information from skin.
+		fbxsdk::FbxSkin* skin = (FbxSkin*)mesh->GetDeformer(i, FbxDeformer::eSkin);
+
+		int clusterCount = skin->GetClusterCount();
+		//LOG_DEBUG("cluster count" + to_string(clusterCount));
+		for (size_t j = 0; j < clusterCount; j++)
+		{
+			fbxsdk::FbxCluster* cluster = skin->GetCluster(j);
+			FbxNode* boneNode = cluster->GetLink(); // The joint that influences vertices
+			string boneName = boneNode->GetName();
+			//Warning!!!!!!
+			//this is a temp solution because it require bone's name convention!!!!
+			int boneIndex = boneName.back() - '0';
+			//let index start from 0
+			boneIndex -= 1;
+			LOG_DEBUG("bone id:" + to_string(boneIndex));
+			if (boneIndex > 10)
+				LOG_WARNING("Bone index convert error!!");
+
+			//an array of indeces
+			int* ctlPointsIndices = cluster->GetControlPointIndices();
+			int indexCount = cluster->GetControlPointIndicesCount();
+			double* ctlPointWeights = cluster->GetControlPointWeights();
+
+			for (size_t k = 0; k < indexCount; k++)
+			{
+				int vertexIndex = ctlPointsIndices[k];
+				float vertexWeightOfBone = (float)ctlPointWeights[k];
+				result[vertexIndex].push_back({ boneIndex,vertexWeightOfBone });
+			}
+
+		}
+	}
+	return result;
+}
+
+
 
 bool ModelClass::LoadFBXModel()
 {

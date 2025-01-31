@@ -308,9 +308,9 @@ bool ApplicationClass::RenderModels() {
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	//m_Direct3D->GetOrthoMatrix(projectionMatrix);
 
-	int scale = 10;
-	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixScaling(scale, scale, scale);
+	//int scale = 10;
+	//// Rotate the world matrix by the rotation value so that the triangle will spin.
+	//worldMatrix = XMMatrixScaling(scale, scale, scale);
 
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationX(GlobalSettings::s_objectRotationX));
 	worldMatrix = XMMatrixMultiply(worldMatrix, XMMatrixRotationY(GlobalSettings::s_objectRotationY));
@@ -321,7 +321,9 @@ bool ApplicationClass::RenderModels() {
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
-	// Render the model using the light shader.
+	// In Render function usually do 2 things.
+	// 1. update all the parameters and data that shader need for every frame.
+	// 2. in d3d context, set current shader, and draw index.
 	bool result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetDiffuseColor());
 	return result;
@@ -376,6 +378,8 @@ bool ApplicationClass::Render()
 	//worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
 	//worldMatrix = XMMatrixRotationY(GlobalSettings::s_objectRotationY);
 	//worldMatrix = XMMatrixRotationZ(GlobalSettings::s_objectRotationZ);
+	int scale = 100;
+	worldMatrix = XMMatrixScaling(scale, scale, scale);
 	m_LineRenderer->Render(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDevice(), worldMatrix, viewMatrix, projectionMatrix);
 
 

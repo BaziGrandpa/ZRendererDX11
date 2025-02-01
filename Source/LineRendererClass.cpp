@@ -61,9 +61,8 @@ bool LineRendererClass::Render(ID3D11DeviceContext* context, ID3D11Device* devic
 	int vertexCount = lineCount * 2;
 
 	// create vertex array
-	VertexType* vertices = new VertexType[vertexCount];
-	for (int i = 0; i < lineCount; i++)
-	{
+	std::vector<VertexType> vertices(vertexCount);
+	for (int i = 0; i < lineCount; i++) {
 		vertices[i * 2] = { m_Lines[i].start, m_Lines[i].color };
 		vertices[i * 2 + 1] = { m_Lines[i].end, m_Lines[i].color };
 	}
@@ -77,15 +76,17 @@ bool LineRendererClass::Render(ID3D11DeviceContext* context, ID3D11Device* devic
 
 
 	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = vertices.data();
 
+	// this step vertex data would be copied to gpu.
 	device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
 	UINT stride = sizeof(VertexType);
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
 	// Set Matrix
-	m_ColorShader->Render(context,device, vertexCount, worldMatrix, viewMatrix, projectionMatrix, true);
+	m_ColorShader->Render(context, device, vertexCount, worldMatrix, viewMatrix, projectionMatrix, true);
+
 
 	return true;
 }

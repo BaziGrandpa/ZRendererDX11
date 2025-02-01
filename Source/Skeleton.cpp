@@ -10,6 +10,7 @@ SkeletonClass::~SkeletonClass()
 }
 
 void SkeletonClass::InitSkeletonRoot(FbxNode* pNode) {
+	m_boneLookUp.clear();
 	m_root = ExtractSkeleton(pNode);
 	if (m_root) {
 		LOG_DEBUG(string("Found Root: ") + m_root->name);
@@ -101,15 +102,21 @@ SkeletonClass::Bone* SkeletonClass::ExtractSkeleton(FbxNode* pNode) {
 		bone->node = pNode;
 		FbxVector4 translation = pNode->LclTranslation.Get();
 		string output = to_string(translation[0]) + " " + to_string(translation[1]) + " " + to_string(translation[2]);
-		LOG_DEBUG(string("translation:" + output));
+		//LOG_DEBUG(string("translation:" + output));
 
-		//first put in the local data, 
+		// first put in the local data, 
 		bone->localPos = DirectX::XMFLOAT4(
 			static_cast<float>(translation[0]),
 			static_cast<float>(translation[1]),
 			static_cast<float>(translation[2]),
 			static_cast<float>(translation[3])
 		);
+
+		// insert to map structure.
+		m_boneLookUp[bone->name] = bone;
+
+		// insert to vector structure.
+		m_orderedBone.push_back(bone);
 
 		for (int i = 0; i < pNode->GetChildCount(); i++) {
 			Bone* child = ExtractSkeleton(pNode->GetChild(i));
@@ -137,11 +144,35 @@ void SkeletonClass::InitAnimationData(FbxScene* scene) {
 		LOG_WARNING("no bone root found! please check.");
 		return;
 	}
+
 	ExtractAnimation(scene, m_root, m_animationData);
 	//Because there is no explicit poses stored inside fbx.
 	//regard the first frame of anim as BindPose 
+	int poseCount = scene->GetPoseCount();
+	if (poseCount > 0) {
+		ExtractBindpose(scene);
+	}
+	else
+		ExtractBindposeByAnimation(m_root);
 
-	ExtractBindpose(m_root);
+	UpdateFinalyMatrixes();
+}
+
+// get the final matrix 
+void SkeletonClass::UpdateFinalyMatrixes() {
+	for (auto it = m_animationData.begin(); it != m_animationData.end(); ++it) {
+		string boneName = it->first;
+		vector<FbxAMatrix> animatedMatrixes = it->second;
+		for (size_t frame = 0; frame < m_animationFrame; frame++)
+		{
+			FbxAMatrix animated = animatedMatrixes[frame];
+			FbxAMatrix bindpose = m_boneLookUp[boneName]->bindPose;
+			FbxAMatrix iversedBindpose = bindpose.Inverse();
+			FbxAMatrix finalMatrix = animated * iversedBindpose;
+			m_animatedBoneMulInvBindpose[boneName].push_back(finalMatrix);
+		}
+	}
+
 }
 
 
@@ -157,10 +188,19 @@ void SkeletonClass::ExtractAnimation(FbxScene* lScene, Bone* bone, std::map<std:
 
 	int totalFrames = static_cast<int>(lAnimStack->GetLocalTimeSpan().GetDuration().GetFrameCount(FbxTime::eFrames24));
 	m_animationFrame = totalFrames;
+
+	//FbxAMatrix handednessCorrection;
+	//handednessCorrection.SetIdentity();
+	//handednessCorrection[2][2] = -1; // Flip Z-axis
+
+
 	for (int frame = 0; frame < totalFrames; frame++) { // Example: 100 frames
 		lTime.SetFrame(frame, FbxTime::eFrames24);
 		//GetNodeGlobalTransform, the global here means global in DCC, but back in engine, is still object space.
 		FbxAMatrix globalTransform = lAnimEvaluator->GetNodeGlobalTransform(bone->node, lTime);
+		
+		//FbxAMatrix correctedGlobalTransform = handednessCorrection * globalTransform * handednessCorrection;
+
 		animationData[bone->name].push_back(globalTransform);
 	}
 
@@ -187,15 +227,72 @@ void SkeletonClass::TickBones(Bone* bone, int frame) {
 	}
 }
 
-void SkeletonClass::ExtractBindpose(Bone* bone) {
+void SkeletonClass::ExtractBindpose(FbxScene* scene) {
+	FbxPose* pose = scene->GetPose(0);
+	if (pose->IsBindPose())
+	{
+
+		int nodeCount = pose->GetCount();
+		for (int nodeIndex = 0; nodeIndex < nodeCount; ++nodeIndex)
+		{
+			FbxNode* node = pose->GetNode(nodeIndex);
+			string name = node->GetName();
+
+			// in the pose, the mesh nodes are not bones.
+			if (m_boneLookUp.find(name) != m_boneLookUp.end()) {
+				// check if is the same as first frame.
+				// Yes it is!
+				FbxMatrix bindMatrix = pose->GetMatrix(nodeIndex);
+
+				// manually convert to affine.
+				FbxAMatrix affineMatrix;
+				for (int i = 0; i < 4; ++i)
+					for (int j = 0; j < 4; ++j)
+						affineMatrix[i][j] = bindMatrix[i][j];
+
+
+				m_boneLookUp[name]->bindPose = affineMatrix;
+			}
+
+			//LOG_DEBUG("nodename:" + string(node->GetName()));
+			// 'bindMatrix' now represents the bind pose transform for 'node'
+		}
+	}
+}
+
+void SkeletonClass::ExtractBindposeByAnimation(Bone* bone) {
 
 	string boneName = bone->name;
 	auto firstFrame = m_animationData.at(boneName)[0];
 	bone->bindPose = firstFrame;
 	for (Bone* child : bone->children) {
-		ExtractBindpose(child);
+		ExtractBindposeByAnimation(child);
 	}
 
+}
+
+vector<XMMATRIX> SkeletonClass::GetAnimatedMatrixesByFrame(int frame) {
+	//so for the result,[bone0,bone1,bone2,bone3]
+	vector<XMMATRIX> result;
+	for (size_t i = 0; i < m_orderedBone.size(); i++)
+	{
+		Bone* current = m_orderedBone[i];
+		string boneName = current->name;
+		FbxAMatrix fbxFinalMatrix = m_animatedBoneMulInvBindpose[boneName][frame];
+		XMMATRIX finalMatrix = ConvertFbxAMatrixToXMMATRIX(fbxFinalMatrix);
+		result.push_back(finalMatrix);
+	}
+	return result;
+}
+
+XMMATRIX SkeletonClass::ConvertFbxAMatrixToXMMATRIX(const FbxAMatrix& fbxMatrix)
+{
+	return XMMATRIX(
+		(float)fbxMatrix[0][0], (float)fbxMatrix[0][1], (float)fbxMatrix[0][2], (float)fbxMatrix[0][3],
+		(float)fbxMatrix[1][0], (float)fbxMatrix[1][1], (float)fbxMatrix[1][2], (float)fbxMatrix[1][3],
+		(float)fbxMatrix[2][0], (float)fbxMatrix[2][1], (float)fbxMatrix[2][2], (float)fbxMatrix[2][3],
+		(float)fbxMatrix[3][0], (float)fbxMatrix[3][1], (float)fbxMatrix[3][2], (float)fbxMatrix[3][3]
+	);
 }
 
 

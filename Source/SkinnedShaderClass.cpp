@@ -34,6 +34,10 @@ bool SkinnedShaderClass::Initialize(ID3D11Device* device, HWND hwnd) {
 	return true;
 }
 
+void SkinnedShaderClass::Shutdown() {
+	return;
+}
+
 bool SkinnedShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename) {
 
 	HRESULT result;
@@ -194,13 +198,13 @@ bool SkinnedShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 }
 
 bool SkinnedShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* texture, XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor)
+	const vector<XMMATRIX>& animatedBoneMatrixes, ID3D11ShaderResourceView* texture, XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, diffuseColor);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, animatedBoneMatrixes, texture, lightDirection, diffuseColor);
 	if (!result)
 	{
 		return false;
@@ -213,7 +217,7 @@ bool SkinnedShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCou
 
 }
 bool SkinnedShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
-	ID3D11ShaderResourceView* texture, XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor) {
+	const vector<XMMATRIX>& animatedBoneMatrix, ID3D11ShaderResourceView* texture, XMFLOAT3 lightDirection, XMFLOAT4 diffuseColor) {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
@@ -235,7 +239,15 @@ bool SkinnedShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
-	//todo also updat bone matrixes!!!
+	//update bone matrixes!!! 
+	for (size_t i = 0; i < 10; ++i)
+	{
+		//so the bone index here is exactly the same as it's location in boneMatrices arr.
+		if (i < animatedBoneMatrix.size())
+			dataPtr->boneMatrices[i] = animatedBoneMatrix[i];
+		else
+			dataPtr->boneMatrices[i] = XMMatrixIdentity();
+	}
 
 	deviceContext->Unmap(m_matrixBuffer, 0);
 
@@ -268,6 +280,8 @@ bool SkinnedShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+
+	return true;
 }
 
 void SkinnedShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)

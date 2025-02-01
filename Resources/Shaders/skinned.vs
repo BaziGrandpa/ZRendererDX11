@@ -46,6 +46,7 @@ PixelInputType SkinnedVertexShader(VertexInputType input)
     
     // Calculate animated position in object space.
     uint4 indices = input.boneIndices;
+    
     output.position = mul(input.position, boneMatrices[indices.x]) * input.boneWeights.x
     + mul(input.position, boneMatrices[indices.y]) * input.boneWeights.y
     + mul(input.position, boneMatrices[indices.z]) * input.boneWeights.z
@@ -60,14 +61,14 @@ PixelInputType SkinnedVertexShader(VertexInputType input)
     output.tex = input.tex;
     
 	// Calculate the normal vector against the world matrix only. 3x3!! don't move!!!
-    output.normal = mul(input.normal, (float3x3) boneMatrices[indices.x]) * input.boneWeights.x
-    + mul(input.normal, (float3x3) boneMatrices[indices.y]) * input.boneWeights.y
-    + mul(input.normal, (float3x3) boneMatrices[indices.z]) * input.boneWeights.z
-    + mul(input.normal, (float3x3) boneMatrices[indices.w]) * input.boneWeights.w;
-    output.normal = mul(input.normal, (float3x3) worldMatrix);
+    //output.normal = mul(input.normal, (float3x3) boneMatrices[indices.x]) * input.boneWeights.x
+    //+ mul(input.normal, (float3x3) boneMatrices[indices.y]) * input.boneWeights.y
+    //+ mul(input.normal, (float3x3) boneMatrices[indices.z]) * input.boneWeights.z
+    //+ mul(input.normal, (float3x3) boneMatrices[indices.w]) * input.boneWeights.w;
+    //output.normal = mul(input.normal, (float3x3) worldMatrix);
 	
     // Normalize the normal vector.
-    output.normal = normalize(output.normal);
+    output.normal = normalize(input.normal);
 
     return output;
 }

@@ -15,7 +15,7 @@ public:
 	void Play();
 	void Tick();
 	void Stop();
-
+	const int GetCurrentFrame() { return m_frameIndex; }
 private:
 	int64_t GetCurrentTimeMillis();
 	void TickSkeleton(int frame);

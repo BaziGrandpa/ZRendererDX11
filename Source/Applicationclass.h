@@ -21,6 +21,7 @@
 #include "textureshaderclass.h"
 #include "lightshaderclass.h"
 #include "lightclass.h"
+#include "SkinnedShaderClass.h"
 
 #include "displayplaneclass.h"
 #include "rendertextureclass.h"
@@ -55,6 +56,7 @@ public:
 private:
 	bool Render();
 	bool RenderModels();
+	bool RenderSkinnedModels();
 	bool RenderSceneToTexture();
 
 
@@ -73,6 +75,7 @@ private:
 
 	SkinnedMeshClass* m_SkinnedMesh;
 	SkeletonClass* m_Skeleton;
+	SkinnedShaderClass* m_skinnedShader;
 
 	AnimationController* m_animationController;
 };

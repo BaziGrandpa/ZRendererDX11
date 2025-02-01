@@ -24,6 +24,7 @@ ApplicationClass::ApplicationClass()
 	m_RenderTexture = 0;
 	m_DisplayPlane = 0;
 	m_animationController = 0;
+	m_skinnedShader = 0;
 }
 
 
@@ -98,6 +99,13 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+		return false;
+	}
+	m_skinnedShader = new SkinnedShaderClass;
+	result = m_skinnedShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the light shader object SkinnedShaderClass.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -198,6 +206,12 @@ void ApplicationClass::Shutdown()
 		m_LightShader->Shutdown();
 		delete m_LightShader;
 		m_LightShader = 0;
+	}
+
+	if (m_skinnedShader) {
+		m_skinnedShader->Shutdown();
+		delete m_skinnedShader;
+		m_skinnedShader = 0;
 	}
 
 	// Release the model object.
@@ -326,18 +340,45 @@ bool ApplicationClass::RenderModels() {
 	// 2. in d3d context, set current shader, and draw index.
 	bool result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetDiffuseColor());
+
+
+	return result;
+}
+
+bool ApplicationClass::RenderSkinnedModels() {
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	/*int scale = 100;
+	worldMatrix = XMMatrixScaling(scale, scale, scale);*/
+
+	// push vertex and index data to context.
+	m_Model->RenderSkinnedMesh(m_Direct3D->GetDeviceContext());
+
+	const int currentFrame = m_animationController->GetCurrentFrame();
+	vector<XMMATRIX> animatedMatrixes = m_Skeleton->GetAnimatedMatrixesByFrame(currentFrame);
+
+	// 1. set shader parameters 2.drawindex.
+	bool result = m_skinnedShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, animatedMatrixes,
+		m_Model->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetDiffuseColor());
+
+
 	return result;
 }
 
 bool ApplicationClass::Render()
 {
-	// Start the Dear ImGui frame
+	//1. IMGUI
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 	//ImGui::ShowDemoWindow(); // Show demo window! :)
-	// render my UI
-	//RenderDebugUI();
 	MyDebugger::ShowDebugUIPanel();
 	MyDebugger::ShowDebugOutputPanel();
 
@@ -349,30 +390,22 @@ bool ApplicationClass::Render()
 	// Clear the buffers to begin the scene.
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-	result = RenderModels();
-
+	//2. Render models
+	//result = RenderModels();
+	result = RenderSkinnedModels();
 
 	if (!result)
 	{
 		return false;
 	}
 
+	//3. Render lines.
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
 	// Setup matrices - Bottom left display plane.
 	worldMatrix = XMMatrixTranslation(-1.5f, 2.5f, 0.0f);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	//m_Direct3D->GetOrthoMatrix(projectionMatrix);
-	//// Render the display plane using the texture shader and the render texture resource.
-	//m_DisplayPlane->Render(m_Direct3D->GetDeviceContext());
-
-	/*result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DisplayPlane->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_RenderTexture->GetShaderResourceView());
-	if (!result)
-	{
-		return false;
-	}*/
-
-	// Render Line
 
 	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 	//worldMatrix = XMMatrixRotationX(GlobalSettings::s_objectRotationX);
@@ -381,7 +414,6 @@ bool ApplicationClass::Render()
 	int scale = 100;
 	worldMatrix = XMMatrixScaling(scale, scale, scale);
 	m_LineRenderer->Render(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDevice(), worldMatrix, viewMatrix, projectionMatrix);
-
 
 
 	// Rendering imgui at the end,so it would be on top of everything

@@ -69,6 +69,7 @@ public:
 	bool InitializeFBX(char*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
+	void RenderSkinnedMesh(ID3D11DeviceContext*);
 
 	int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture();
@@ -93,6 +94,8 @@ private:
 
 private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
+	ID3D11Buffer* m_skinnedVertexBuffer, * m_skinnedIndexBuffer;
+
 	int m_vertexCount, m_indexCount;
 	TextureClass* m_Texture;
 

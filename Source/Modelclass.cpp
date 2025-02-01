@@ -8,6 +8,8 @@ ModelClass::ModelClass()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
+	m_skinnedVertexBuffer = 0;
+	m_skinnedIndexBuffer = 0;
 	m_Texture = 0;
 	m_model = 0;
 }
@@ -70,8 +72,14 @@ bool ModelClass::InitializeFBX(char* modelFilename)
 	}
 
 	m_scene = FbxScene::Create(sdkManager, "Scene");
+
+
+
 	importer->Import(m_scene);
 	importer->Destroy();
+
+	//fbxsdk::FbxAxisSystem directXSystem(fbxsdk::FbxAxisSystem::Motionbuilder);
+	//directXSystem.ConvertScene(m_scene);
 	return true;
 }
 
@@ -97,6 +105,27 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 	return;
 }
 
+void ModelClass::RenderSkinnedMesh(ID3D11DeviceContext* deviceContext) {
+	unsigned int stride;
+	unsigned int offset;
+
+
+	// Set vertex buffer stride and offset.
+	stride = sizeof(SkinnedVertexType);
+	offset = 0;
+
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetVertexBuffers(0, 1, &m_skinnedVertexBuffer, &stride, &offset);
+
+	// Set the index buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetIndexBuffer(m_skinnedIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return;
+}
+
 int ModelClass::GetIndexCount()
 {
 	return m_indexCount;
@@ -110,41 +139,16 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	//VertexType* vertices;
-	//unsigned long* indices;
-	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, indexData;
+
 	HRESULT result;
-	int i;
-
-	//// Create the vertex array.
-	//vertices = new VertexType[m_vertexCount];
-	//if (!vertices)
-	//{
-	//	return false;
-	//}
-
-	//// Create the index array.
-	//indices = new unsigned long[m_indexCount];
-	//if (!indices)
-	//{
-	//	return false;
-	//}
-
-	//// Load the vertex array and index array with data.
-	//for (i = 0; i < m_vertexCount; i++)
-	//{
-	//	vertices[i].position = XMFLOAT3(m_model[i].x, m_model[i].y, m_model[i].z);
-	//	vertices[i].texture = XMFLOAT2(m_model[i].tu, m_model[i].tv);
-	//	vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
-
-	//	indices[i] = i;
-	//}
 
 	m_vertexCount = m_fbxvertices.size();
 	m_indexCount = m_fbxindices.size();
+	int skinnedVCount = m_fbxSkinnedVertices.size();
+	int skinnedICount = m_fbxSkinnedIndices.size();
 
 	// Set up the description of the static vertex buffer.
+	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -153,7 +157,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	//vertexData.pSysMem = vertices;
+	D3D11_SUBRESOURCE_DATA vertexData;
 	vertexData.pSysMem = m_fbxvertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
@@ -166,6 +170,8 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 
 	// Set up the description of the static index buffer.
+
+	D3D11_BUFFER_DESC indexBufferDesc;
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.ByteWidth = sizeof(ULONG) * m_indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -174,7 +180,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the index data.
-	//indexData.pSysMem = indices;
+	D3D11_SUBRESOURCE_DATA indexData;
 	indexData.pSysMem = m_fbxindices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
@@ -186,12 +192,51 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	//delete[] vertices;
-	//vertices = 0;
+	//3. Set up the description of the skinned vertex buffer.
+	D3D11_BUFFER_DESC skinnedVertexBufferDesc;
+	skinnedVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	skinnedVertexBufferDesc.ByteWidth = sizeof(SkinnedVertexType) * m_vertexCount;
+	skinnedVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	skinnedVertexBufferDesc.CPUAccessFlags = 0;
+	skinnedVertexBufferDesc.MiscFlags = 0;
+	skinnedVertexBufferDesc.StructureByteStride = 0;
 
-	//delete[] indices;
-	//indices = 0;
+	// Give the subresource structure a pointer to the vertex data.
+	D3D11_SUBRESOURCE_DATA skinnedVertexData;
+	skinnedVertexData.pSysMem = m_fbxSkinnedVertices.data();
+	skinnedVertexData.SysMemPitch = 0;
+	skinnedVertexData.SysMemSlicePitch = 0;
+
+	// Now create the vertex buffer.
+	result = device->CreateBuffer(&skinnedVertexBufferDesc, &skinnedVertexData, &m_skinnedVertexBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	//4. Set up the description of the skinned index buffer.
+	D3D11_BUFFER_DESC skinnedIndexBufferDesc;
+	skinnedIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	skinnedIndexBufferDesc.ByteWidth = sizeof(ULONG) * m_indexCount;
+	skinnedIndexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	skinnedIndexBufferDesc.CPUAccessFlags = 0;
+	skinnedIndexBufferDesc.MiscFlags = 0;
+	skinnedIndexBufferDesc.StructureByteStride = 0;
+
+	// Give the subresource structure a pointer to the index data.
+	D3D11_SUBRESOURCE_DATA skinnedIndexData;
+	skinnedIndexData.pSysMem = m_fbxSkinnedIndices.data();
+	skinnedIndexData.SysMemPitch = 0;
+	skinnedIndexData.SysMemSlicePitch = 0;
+
+	// Create the index buffer.
+	result = device->CreateBuffer(&skinnedIndexBufferDesc, &skinnedIndexData, &m_skinnedIndexBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+
 
 	return true;
 }
@@ -210,6 +255,16 @@ void ModelClass::ShutdownBuffers()
 	{
 		m_vertexBuffer->Release();
 		m_vertexBuffer = 0;
+	}
+
+	if (m_skinnedIndexBuffer) {
+		m_skinnedIndexBuffer->Release();
+		m_skinnedIndexBuffer = 0;
+	}
+
+	if (m_skinnedVertexBuffer) {
+		m_skinnedVertexBuffer->Release();
+		m_skinnedVertexBuffer = 0;
 	}
 
 	return;
@@ -270,7 +325,7 @@ void ModelClass::ReleaseTexture()
 void ModelClass::TraverseNode(FbxNode* node) {
 	if (FbxMesh* mesh = node->GetMesh()) {
 		ProcessMesh(mesh);
-		//ProcessSkinnedMesh(mesh);
+		ProcessSkinnedMesh(mesh);
 		LOG_DEBUG(mesh->GetName());
 	}
 
@@ -368,6 +423,9 @@ void ModelClass::ProcessSkinnedMesh(FbxMesh* mesh) {
 				static_cast<float>(position[1]),
 				static_cast<float>(position[2]));
 
+			//handness conversion!!!!
+			vertex.position.z *= -1;
+
 			if (normalElement) {
 				FbxVector4 normal;
 				mesh->GetPolygonVertexNormal(polygonIndex, vertexIndex, normal);
@@ -393,7 +451,7 @@ void ModelClass::ProcessSkinnedMesh(FbxMesh* mesh) {
 				int boneIndex = bonesAndWeights[i].boneIndex;
 				float boneWeight = bonesAndWeights[i].weight;
 				// bonesAndWeights.size() maximum 4
-				
+
 				switch (i)
 				{
 				case 0:
@@ -419,7 +477,7 @@ void ModelClass::ProcessSkinnedMesh(FbxMesh* mesh) {
 			}
 
 			m_fbxSkinnedVertices.push_back(vertex);
-			m_fbxindices.push_back(static_cast<uint32_t>(m_fbxvertices.size() - 1));
+			m_fbxSkinnedIndices.push_back(static_cast<uint32_t>(m_fbxSkinnedVertices.size() - 1));
 		}
 	}
 }
@@ -469,6 +527,21 @@ vector<vector<ModelClass::VertexWeight>> ModelClass::GetVertexWeights(FbxMesh* m
 
 		}
 	}
+
+	for (size_t vertexIndex = 0; vertexIndex < result.size(); vertexIndex++)
+	{
+		float totalWeight = 0;
+		for (size_t i = 0; i < result[vertexIndex].size(); i++)
+		{
+			auto verteexWeight = result[vertexIndex][i];
+			totalWeight += verteexWeight.weight;
+		}
+		float delta = 1 - totalWeight;
+		if (delta >= 0.05) {
+			LOG_DEBUG("weight need:" + to_string(delta));
+		}
+	}
+
 	return result;
 }
 
